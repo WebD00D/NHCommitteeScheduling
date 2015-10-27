@@ -1,4 +1,6 @@
 ﻿<%@ Page Language="vb" AutoEventWireup="false" CodeBehind="Default.aspx.vb" Inherits="XMLegislator_CommitteeSchedulingApp._Default" %>
+<%@ Register Assembly="DayPilot" Namespace="DayPilot.Web.Ui" TagPrefix="DayPilot" %>
+
 
 <!DOCTYPE html>
 
@@ -9,7 +11,23 @@
 <body>
     <form id="form1" runat="server">
     <div>
-    
+        
+   <DayPilot:DayPilotScheduler 
+  ID="DayPilotScheduler1" 
+  runat="server" 
+  
+  DataStartField="eventstart" 
+  DataEndField="eventend" 
+  DataTextField="name" 
+  DataIdField="id" 
+  DataResourceField="resource_id" 
+  
+  CellGroupBy="Month"
+  Scale="Day"
+  
+  EventMoveHandling="CallBack" 
+  >
+</DayPilot:DayPilotScheduler>
     </div>
     </form>
 </body>

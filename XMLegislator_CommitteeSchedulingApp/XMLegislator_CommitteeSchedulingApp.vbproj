@@ -40,6 +40,9 @@
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DayPilot">
+      <HintPath>..\..\Committee Sched Oct 2015\Binary\Net4.0\DayPilot.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -60,6 +63,12 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Import Include="DayPilot" />
+    <Import Include="DayPilot.Json" />
+    <Import Include="DayPilot.Utils" />
+    <Import Include="DayPilot.Web" />
+    <Import Include="DayPilot.Web.Ui" />
+    <Import Include="DayPilot.Web.Ui.Ajax" />
     <Import Include="Microsoft.VisualBasic" />
     <Import Include="System" />
     <Import Include="System.Collections" />
