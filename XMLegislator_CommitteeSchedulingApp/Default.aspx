@@ -12,7 +12,8 @@
     <form id="form1" runat="server">
     <div>
         
-   <DayPilot:DayPilotScheduler 
+   <DayPilot:DayPilotScheduler
+        
   ID="DayPilotScheduler1" 
   runat="server" 
   
@@ -22,11 +23,19 @@
   DataIdField="id" 
   DataResourceField="resource_id" 
   
+
+
+
   CellGroupBy="Month"
-  Scale="Day"
+  Scale="hour"
   
   EventMoveHandling="CallBack" 
   >
+       <TimeHeaders>
+    <DayPilot:TimeHeader GroupBy="Month" Format="MMMM yyyy" />
+    <DayPilot:TimeHeader GroupBy="Day" />
+   <DayPilot:TimeHeader GroupBy="Hour" />
+  </TimeHeaders>
 </DayPilot:DayPilotScheduler>
     </div>
     </form>

@@ -5,9 +5,10 @@ Public Class _Default
     Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         If Not IsPostBack Then
             LoadResources()
-            DayPilotScheduler1.StartDate = New Date(Date.Today.Year, 1, 1)
-            DayPilotScheduler1.Days = Year.Days(Date.Today.Year)
-            DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+            DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
+            DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+
+            '  DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
             DayPilotScheduler1.DataBind()
             DayPilotScheduler1.SetScrollX(Date.Today)
         End If
@@ -15,15 +16,17 @@ Public Class _Default
 
     Private Sub LoadResources()
         DayPilotScheduler1.Resources.Clear()
-        Dim da As New SqlDataAdapter("SELECT [id], [name] FROM [resource]", ConfigurationManager.ConnectionStrings("DayPilot").ConnectionString)
+        Dim da As New SqlDataAdapter("SELECT [RoomID], [RoomName] FROM [room]", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable()
         da.Fill(dt)
 
         For Each r As DataRow In dt.Rows
-            Dim name As String = DirectCast(r("name"), String)
-            Dim id_Renamed As String = Convert.ToString(r("id"))
+            Dim name As String = DirectCast(r("RoomName"), String)
+            Dim id_Renamed As String = Convert.ToString(r("RoomID"))
+            If Not id_Renamed = "1" Then
+                DayPilotScheduler1.Resources.Add(name, id_Renamed)
+            End If
 
-            DayPilotScheduler1.Resources.Add(name, id_Renamed)
         Next r
     End Sub
 
