@@ -8,7 +8,7 @@ Public Class _Default
             DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
             DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
 
-            '  DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+            DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
             DayPilotScheduler1.DataBind()
             DayPilotScheduler1.SetScrollX(Date.Today)
         End If
@@ -45,12 +45,14 @@ Public Class _Default
 
     Private Function DbGetEvents(ByVal start As Date, ByVal days As Integer) As DataTable
 
-        Dim da As New SqlDataAdapter("SELECT [id], [name], [eventstart], [eventend], [resource_id] FROM [event] WHERE NOT (([eventend] <= @start) OR ([eventstart] >= @end))", ConfigurationManager.ConnectionStrings("DayPilot").ConnectionString)
+        Dim da As New SqlDataAdapter("SELECT [CommitteeMeetingID], [StartTime], [EndTime], cm.RoomID, c.CommitteeName FROM [CommitteeMeeting] cm INNER JOIN Committee c on cm.CommitteeID = c.CommitteeID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end))", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         da.SelectCommand.Parameters.AddWithValue("start", start)
         da.SelectCommand.Parameters.AddWithValue("end", start.AddDays(days))
         Dim dt As New DataTable()
         da.Fill(dt)
         Return dt
+ 
+
 
     End Function
 
