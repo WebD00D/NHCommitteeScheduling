@@ -72,92 +72,85 @@
 </DayPilot:DayPilotScheduler>
     </div>
 
-    <div id="modal1" class="modal modal-fixed-footer">
-    <div class="modal-content">
-      <h4>Schedule Committee Meeting</h4>
+        <div id="modal1" class="modal modal-fixed-footer">
+            <div class="modal-content">
+                <div class="row">
+                    <div class="col s12">
+                        <div class="row" style="margin-bottom: 0px">
+                            <div class="col s12">
+                                <h4><b>Create New Meeting</b></h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s6">
+                                <label for="dlcommittee"><small>Committee</small></label>
+                                <br />
+                                <br />
+                                <select id="dlcommittee" class="comname browser-default"></select>
 
-    
-
-
-    <div class="row">
-    <div class="col s12">
-
-      <div class="row">
-        <div class="input-field col s6">
-          <select class="comname browser-default"></select>
+                            </div>
+                            <div class="input-field col s6">
+                                <label for="roomdropdown"><small>Building / Room</small></label>
+                                <br />
+                                <br />
+                                <select id="roomdropdown" class="roomname browser-default"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="thedate" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom: 0px" />
+                                <label for="thedate">Meeting Day</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col l6 s6" style="margin-top: 0px">
+                                <label><small>Start Time</small></label>
+                                <br />
+                                <input id="theStartTime" style="margin-top: 12px" type="time" />
+                            </div>
+                            <div class="input-field col l6 s6" style="margin-top: 0px">
+                                <label><small>End Time</small></label>
+                                <br />
+                                <input id="theEndTime" style="margin-top: 12px" type="time" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <br />
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-action modal-close waves-effect btn green ">SAVE</a>
+            </div>
         </div>
-        <div class="input-field col s6">
-         <select class="roomname browser-default"></select>
-        </div>
-      </div>
-     
-      <div class="row">
-        <div class="input-field col s12" >
-         <input id="thedate" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom:0px"/>
-         <label for="thedate" >Meeting Day</label>
-        </div>
-      </div>
 
-    <div class="row">
-         <div class="input-field col l6" style="margin-top:0px">
-              <label><small> Start Time</small></label>
-             <br />
-             <input id="theStartTime" style="margin-top:12px" type="time"/>
-        </div>
-        <div class="input-field col l6" style="margin-top:0px">
-              <label><small> End Time</small></label>
-             <br />
-             <input id="theEndTime" style="margin-top:12px" type="time"/>
-        </div>
-    </div>
 
- 
-     
-    </div>
-  </div>
-         
-    
-        
-        
 
-   
-      
-      
-       
-       
-      
-      <br />
-      <br />
-      
-    
-    </div>
-    <div class="modal-footer">
-      <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
-    </div>
-  </div>
-        
     </form>
-  
+
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
-   <script>
-       $(document).ready(function () {
+    <script>
+        $(document).ready(function () {
 
-           $('.datepicker').pickadate({
-               selectMonths: true, // Creates a dropdown to control month
-               selectYears: 15 // Creates a dropdown of 15 years to control year
-           });
-           $('select').material_select();
-       })
-   </script>
-   
+            $('.datepicker').pickadate({
+                selectMonths: true, 
+                selectYears: 2 
+            });
+            $('select').material_select();
+        })
+    </script>
+
     <script type="text/javascript">
-         
+        var optionobject;
+        var options = [];
+
+        loaddropdown();
+        loadrooms();
 
 
-  
         function loaddropdown() {
-            
+
             var options;
             $.ajax({
                 type: "POST",
@@ -169,10 +162,10 @@
 
                     var result = data.d;
                     $(".comname").empty();
-                    
+
                     $.each(result, function (index, item) {
 
-                        options =  "<option data-comid=" + item.CommitteeID + ">" + item.CommitteeName + "</option>"
+                        options = "<option  data-comid=" + item.CommitteeID + ">" + item.CommitteeName + "</option>"
                         $(options).appendTo(".comname");
 
                     })
@@ -189,8 +182,8 @@
                 }
             }) //end ajax
 
-            
-          //  return "<select class='selectit'>" + options + "</select>"
+
+            //  return "<select class='selectit'>" + options + "</select>"
         }
 
 
@@ -210,7 +203,7 @@
 
                     $.each(result, function (index, item) {
 
-                        options = "<option data-comid=" + item.RoomID + ">" + item.RoomName + "</option>"
+                        options = "<option val=" + item.RoomID + " data-roomid=" + item.RoomID + ">" + item.RoomName + "</option>"
                         $(options).appendTo(".roomname");
 
                     })
@@ -231,10 +224,10 @@
             //  return "<select class='selectit'>" + options + "</select>"
         }
 
+       
+
         function timeRangeSelected(start, end, resource) {
-            
-            loaddropdown();
-            loadrooms();
+
 
             var startDate = new Date(start);
             var endDate = new Date(end);
@@ -263,29 +256,31 @@
                 endFormatted = endHours + ":00";
             }
             $("#theEndTime").val(endFormatted);
-        
+
+            $("#roomdropdown option[val=" + resource + "]").prop("selected", true);
+
             $('#modal1').openModal();
-                
-                // alert(start + " " + end + " " + resource);
-               // var modal = new DayPilot.Modal();
-               // modal.top = 60;
-               // modal.width = 300;
-               // modal.opacity = 70;
-               // modal.border = "10px solid #d0d0d0";
-               // modal.closed = function () {
-               //     if (this.result == "OK") {
-               //         dps1.commandCallBack('refresh');
-               //     }
-               //     dps1.clearSelection();
-              //  };
-               // modal.showUrl("New.aspx?start=" + start.toStringSortable() + "&end=" + end.toStringSortable() + "&r=" + resource);
-            }
 
+            // alert(start + " " + end + " " + resource);
+            // var modal = new DayPilot.Modal();
+            // modal.top = 60;
+            // modal.width = 300;
+            // modal.opacity = 70;
+            // modal.border = "10px solid #d0d0d0";
+            // modal.closed = function () {
+            //     if (this.result == "OK") {
+            //         dps1.commandCallBack('refresh');
+            //     }
+            //     dps1.clearSelection();
+            //  };
+            // modal.showUrl("New.aspx?start=" + start.toStringSortable() + "&end=" + end.toStringSortable() + "&r=" + resource);
+        }
 
+   
 
        
 
   
-</script>
+    </script>
 </body>
 </html>
