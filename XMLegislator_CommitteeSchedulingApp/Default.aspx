@@ -120,7 +120,7 @@
                 <br />
             </div>
             <div class="modal-footer">
-                <a href="#!" class="modal-action modal-close waves-effect btn green ">SAVE</a>
+                <a href="#!" id="btnCreateNewMeeting" class="modal-action modal-close waves-effect btn green ">SAVE</a>
             </div>
         </div>
 
@@ -276,8 +276,63 @@
             // modal.showUrl("New.aspx?start=" + start.toStringSortable() + "&end=" + end.toStringSortable() + "&r=" + resource);
         }
 
-   
+        var meetingdate;
+        $("#btnCreateNewMeeting").click(function () {
+            //get the set values
+            var committeeId = $("#dlcommittee option:selected").attr("data-comid");
+            var roomid = $("#roomdropdown option:selected").attr("data-roomid");
 
+            if (typeof committeeId === "undefined") {
+                alert("A committee has not been selected.");
+                return;
+            }
+            if (typeof roomid === "undefined") {
+                alert("A room has not been selected.");
+                return;
+            }
+
+            meetingdate = new Date($("#thedate").val());
+            var startTime = $("#theStartTime").val();
+            var endTime = $("#theEndTime").val();
+            var day = meetingdate.getDate() + 1;
+            var month = meetingdate.getMonth() + 1;
+            var year = meetingdate.getFullYear();
+            var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
+            var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/DateEngine",
+                data: "{FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'"+ committeeId +"',RoomID:'"+ roomid +"'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(".roomname").empty();
+
+                    $.each(result, function (index, item) {
+
+                        options = "<option val=" + item.RoomID + " data-roomid=" + item.RoomID + ">" + item.RoomName + "</option>"
+                        $(options).appendTo(".roomname");
+
+                    })
+
+                    var baseoption = "<option>-- No room selected --</option>"
+                    $(baseoption).prependTo(".roomname");
+
+                },
+                failure: function (msg) {
+                    alert(msg);
+                },
+                error: function (err) {
+                    alert(err);
+                }
+            }) //end ajax
+           
+        })
+
+       
        
 
   

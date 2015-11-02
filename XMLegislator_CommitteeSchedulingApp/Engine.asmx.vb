@@ -92,6 +92,38 @@ Public Class Engine
         Return ""
     End Function
 
+    <WebMethod()> _
+    Public Function DateEngine(ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String)
+
+        Dim NewStartDate As Date = CDate(FormattedStartDate)
+        Dim NewEndDate As Date = CDate(FormattedEndDate)
+        Dim MeetingDay As Date = NewStartDate.Date
+
+        ' added sproc_CreateNewCommitteeMeeting
+
+        '@meetingdate datetime
+        '@committeeid
+        '@roomid int
+        '@starttime int
+        '@endtime int
+
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.StoredProcedure
+            cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
+            cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
+            cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
+            cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+            cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
+            cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+            cmd.ExecuteNonQuery()
+            cmd.Connection.Close()
+        End Using
+
+        Return "Hello World"
+    End Function
 
 
     <WebMethod()> _
