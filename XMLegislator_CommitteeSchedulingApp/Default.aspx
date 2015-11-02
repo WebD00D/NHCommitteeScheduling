@@ -11,12 +11,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css" />
     <style type="text/css">
         .comname {
-            color:#0094ff;
+            color:black;
             padding:10px;
             width:100%;
         }
         .roomname {
-            color:#0094ff;
+            color:black;
             padding:10px;
             width:100%;
         }
@@ -28,6 +28,16 @@
 
 <body>
     <form id="form1" runat="server">
+     <nav>
+    <div class="nav-wrapper blue-grey">
+      <a href="#" class="brand-logo" style="margin-left:50px"><b><small>NH Committee Scheduler</small></b></a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><a href="sass.html">Log Out</a></li>
+     
+      </ul>
+    </div>
+  </nav>
+        
         
     <div>
         
@@ -48,7 +58,9 @@
 
   CellGroupBy="Month"
   Scale="hour"
-  
+  BusinessBeginsHour="8"
+  BusinessEndsHour="18"
+  ShowNonBusiness="false"
   EventMoveHandling="CallBack" 
   >
        <TimeHeaders>
@@ -63,13 +75,55 @@
     <div id="modal1" class="modal modal-fixed-footer">
     <div class="modal-content">
       <h4>Schedule Committee Meeting</h4>
-         
-        <select class="comname browser-default"></select>
-        
-        <select style="margin-top:12px" class="roomname browser-default"></select>
 
-        <input style="margin-top:12px" type="date"/>
-        <input style="margin-top:12px" type="time"/>
+    
+
+
+    <div class="row">
+    <div class="col s12">
+
+      <div class="row">
+        <div class="input-field col s6">
+          <select class="comname browser-default"></select>
+        </div>
+        <div class="input-field col s6">
+         <select class="roomname browser-default"></select>
+        </div>
+      </div>
+     
+      <div class="row">
+        <div class="input-field col s12" >
+         <input id="thedate" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom:0px"/>
+         <label for="thedate" >Meeting Day</label>
+        </div>
+      </div>
+
+    <div class="row">
+         <div class="input-field col l6" style="margin-top:0px">
+              <label><small> Start Time</small></label>
+             <br />
+             <input id="theStartTime" style="margin-top:12px" type="time"/>
+        </div>
+        <div class="input-field col l6" style="margin-top:0px">
+              <label><small> End Time</small></label>
+             <br />
+             <input id="theEndTime" style="margin-top:12px" type="time"/>
+        </div>
+    </div>
+
+ 
+     
+    </div>
+  </div>
+         
+    
+        
+        
+
+   
+      
+      
+       
        
       
       <br />
@@ -86,10 +140,21 @@
   
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
-   
+   <script>
+       $(document).ready(function () {
+
+           $('.datepicker').pickadate({
+               selectMonths: true, // Creates a dropdown to control month
+               selectYears: 15 // Creates a dropdown of 15 years to control year
+           });
+           $('select').material_select();
+       })
+   </script>
    
     <script type="text/javascript">
          
+
+
   
         function loaddropdown() {
             
@@ -167,9 +232,38 @@
         }
 
         function timeRangeSelected(start, end, resource) {
-            alert(start);
+            
             loaddropdown();
             loadrooms();
+
+            var startDate = new Date(start);
+            var endDate = new Date(end);
+
+            var startDay = ("0" + startDate.getDate()).slice(-2);
+            var startMonth = ("0" + (startDate.getMonth() + 1)).slice(-2);
+            var startYear = startDate.getFullYear();
+            var today = startYear + "-" + (startMonth) + "-" + (startDay);
+            var startHours = startDate.getUTCHours();
+            var endHours = endDate.getUTCHours();
+
+            $('#thedate').val(today);
+
+            var startFormatted;
+            if (startHours < 10) {
+                startFormatted = "0" + startHours + ":00";
+            } else {
+                startFormatted = startHours + ":00";
+            }
+            $("#theStartTime").val(startFormatted);
+
+            var endFormatted;
+            if (endHours < 10) {
+                endFormatted = "0" + endHours + ":00";
+            } else {
+                endFormatted = endHours + ":00";
+            }
+            $("#theEndTime").val(endFormatted);
+        
             $('#modal1').openModal();
                 
                 // alert(start + " " + end + " " + resource);
