@@ -18,10 +18,10 @@ Public Class Engine
         Public ChamberCode As String
         Public CommitteeName As String
         Public CommitteeMeetingID As Integer
-        Public MeetingDateTime As Date
+        Public MeetingDateTime As String
         Public DefaultRoomID As Integer
-        Public StartTime As Date
-        Public EndTime As Date
+        Public StartTime As String
+        Public EndTime As String
     End Class
 
 
@@ -158,6 +158,34 @@ Public Class Engine
         Return "Hello World"
     End Function
 
+    <WebMethod()> _
+    Public Function DateEngine2(ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String)
+
+        Dim NewStartDate As Date = CDate(FormattedStartDate)
+        Dim NewEndDate As Date = CDate(FormattedEndDate)
+        Dim MeetingDay As Date = NewStartDate.Date
+
+        ' added sproc_EditNewCommitteeMeeting
+
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.StoredProcedure
+            cmd.CommandText = "sproc_EditCommitteeMeeting"
+            cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
+            cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
+            cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+            cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
+            cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+            cmd.Parameters.AddWithValue("@meetingid", meetingId)
+            cmd.ExecuteNonQuery()
+            cmd.Connection.Close()
+        End Using
+
+        Return "Hello World"
+    End Function
+
 
     <WebMethod()> _
     Public Function GetMeetingDetails(ByVal CommitteeMeetingID As Integer)
@@ -196,7 +224,20 @@ Public Class Engine
         Return "Hello World"
     End Function
 
+    <WebMethod()> _
+    Public Function MeetingResized(ByVal MeetingID As Integer, ByVal StartTime As String, ByVal EndTime As String)
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "UPDATE CommitteeMeeting SET StartTime = '" & StartTime & "' , EndTime = '" & EndTime & "' WHERE CommitteeMeetingID = " & MeetingID
+            cmd.ExecuteNonQuery()
+            cmd.Connection.Close()
+        End Using
 
+        Return "Hello World"
+    End Function
 
     <WebMethod()> _
     Public Function HelloWorld() As String

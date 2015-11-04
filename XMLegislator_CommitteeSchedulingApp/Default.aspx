@@ -57,7 +57,8 @@
   TimeRangeSelectedJavaScript="timeRangeSelected(start, end, resource)"
   eventClickHandling ="JavaScript"
   EventClickJavaScript="eventClick(e);"
-      
+   eventResizeHandling ="JavaScript"
+      eventResizeJavascript="onEventResize(e, newStart, newEnd) "
   
   CellGroupBy="Month"
   Scale="hour"
@@ -294,6 +295,45 @@
             //  return "<select class='selectit'>" + options + "</select>"
         }
 
+        function loaddropdown2(committeeTypeID, selectedcom, room) {
+
+            var options;
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/LoadCommittees",
+                data: "{CommitteeTypeID:'" + committeeTypeID + "'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(".comname").empty();
+
+                    $.each(result, function (index, item) {
+
+                        options = "<option val=" + item.CommitteeID + "  data-comid=" + item.CommitteeID + ">" + item.CommitteeName + "</option>"
+                        $(options).appendTo(".comname");
+
+                    })
+
+                    var baseoption = "<option>-- No committee selected --</option>"
+                    $(baseoption).prependTo(".comname");
+                    $("#dlcommittee2 option[val=" + selectedcom + "]").prop("selected", true);
+                    $("#roomdropdown2 option[val=" + room + "]").prop("selected", true);
+
+                },
+                failure: function (msg) {
+
+                },
+                error: function (err) {
+
+                }
+            }) //end ajax
+
+
+            //  return "<select class='selectit'>" + options + "</select>"
+        }
+
 
         function loadrooms() {
 
@@ -431,14 +471,74 @@
            
         })
 
+
+        
+        var meetingdate2;
+        $("#btnEditMeeting").click(function () {
+
+            var meetingid = $(this).attr('data-meeting');
+        
+            //get the set values
+            var committeeId = $("#dlcommittee2 option:selected").attr("data-comid");
+            var roomid = $("#roomdropdown2 option:selected").attr("data-roomid");
+
+            if (typeof committeeId === "undefined") {
+                alert("A committee has not been selected.");
+                return;
+            }
+            if (typeof roomid === "undefined") {
+                alert("A room has not been selected.");
+                return;
+            }
+
+            meetingdate2 = new Date($("#thedate2").val());
+            var startTime = $("#theStartTime2").val();
+            var endTime = $("#theEndTime2").val();
+            var day = meetingdate2.getDate() + 1;
+            var month = meetingdate2.getMonth() + 1;
+            var year = meetingdate2.getFullYear();
+            var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
+            var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/DateEngine2",
+                data: "{meetingId:'"+ meetingid +"', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    window.location.reload(true);
+
+
+                },
+                failure: function (msg) {
+                    alert(msg);
+                },
+                error: function (err) {
+                    alert(err);
+                }
+            }) //end ajax
+
+        })
+
+
        
  
-        $(".comtypename").change(function () {
-            var comtype = $('.comtypename option:selected').attr("data-comtypeid");
+        $("#dlcommitteeType2").change(function () {
+            var comtype = $('#dlcommitteeType2 option:selected').attr("data-comtypeid");
+            console.log(comtype);
+            loaddropdown(comtype);
+        })
+        $("#dlcommitteeType").change(function () {
+            var comtype = $('#dlcommitteeType option:selected').attr("data-comtypeid");
             loaddropdown(comtype);
         })
 
-       
+
+  
+       var _StartTime;
 
         function eventClick(e) {
             var meetingid = e.value();
@@ -448,6 +548,8 @@
             var defaultRoomId;
             var startTime;
             var endTime;
+
+            $("#btnEditMeeting").attr('data-meeting', meetingid);
 
             // get meeting details and set pertinent variables needed to call remaining methods
 
@@ -474,7 +576,41 @@
 
                     console.log('committee type id = ' + committeeTypeId + ' committee id = ' + committeeId);
                     $("#dlcommitteeType2 option[val=" + committeeTypeId + "]").prop("selected", true);
-                   
+                    loadEditableCommittees(committeeTypeId, committeeId, defaultRoomId);
+                    
+
+                    var startDate = new Date(startTime);
+                    var endDate = new Date(endTime);
+                 
+
+                    var startDay = ("0" + startDate.getDate()).slice(-2);
+                    var startMonth = ("0" + (startDate.getMonth() + 1)).slice(-2);
+                    var startYear = startDate.getFullYear();
+                    var today = startYear + "-" + (startMonth) + "-" + (startDay);
+                    var startHours = startDate.getHours();
+                  
+                    var endHours = endDate.getHours();
+
+                    $('#thedate2').val(today);
+
+                    var startFormatted;
+                    if (startHours < 10) {
+                        startFormatted = "0" + startHours + ":00";
+                    } else {
+                        startFormatted = startHours + ":00";
+                    }
+
+                    $("#theStartTime2").val(startFormatted);
+
+                    var endFormatted;
+                    if (endHours < 10) {
+                        endFormatted = "0" + endHours + ":00";
+                    } else {
+                        endFormatted = endHours + ":00";
+                    }
+                    $("#theEndTime2").val(endFormatted);
+
+                    // End Date PlayGround
 
                 },
                 failure: function (msg) {
@@ -495,11 +631,34 @@
 
         }
 
-        function loadEditableCommittees(comid) {
-            loaddropdown(comid);
-            $("#dlcommittee2 option[val=" + committeeId + "]").prop("selected", true);
+        function loadEditableCommittees(comtype,comid,room) {
+            console.log("inside editable committees");
+            loaddropdown2(comtype,comid,room);
         }
 
+        function onEventResize(e, newStart, newEnd) {
+            // console.log(e.value(), newStart,newEnd);
+            //Function MeetingResized(ByVal MeetingID As Integer, ByVal StartTime As String, ByVal EndTime As String)
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/MeetingResized",
+                data: "{MeetingID:'"+ e.value() +"',StartTime:'"+ newStart +"',EndTime:'"+ newEnd +"'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    window.location.reload(true);
+
+                },
+                failure: function (msg) {
+                    console.log(msg);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            }) //end ajax
+        }
   
     </script>
 </body>

@@ -55,9 +55,9 @@ Public Class _Default
     End Function
 
     Private Sub DbUpdateEvent(ByVal id As String, ByVal start As Date, ByVal [end] As Date, ByVal resource As String)
-        Using con As New SqlConnection(ConfigurationManager.ConnectionStrings("DayPilot").ConnectionString)
+        Using con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
             con.Open()
-            Dim cmd As New SqlCommand("UPDATE [event] SET eventstart = @start, eventend = @end, resource_id = @resource WHERE id = @id", con)
+            Dim cmd As New SqlCommand("UPDATE [CommitteeMeeting] SET StartTime = @start, EndTime = @end, RoomID = @resource WHERE CommitteeMeetingID = @id", con)
             cmd.Parameters.AddWithValue("id", id)
             cmd.Parameters.AddWithValue("start", start)
             cmd.Parameters.AddWithValue("end", [end])
