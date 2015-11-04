@@ -95,7 +95,7 @@
     <Content Include="daypilot-modal-2.2.js" />
     <Content Include="Default.aspx" />
     <Content Include="Engine.asmx" />
-    <Content Include="sproc_CreateNewCommitteeMeeting.txt" />
+    <Content Include="sproc_CreateCommitteeMeeting.txt" />
     <Content Include="sproc_EditCommitteeMeeting.txt" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

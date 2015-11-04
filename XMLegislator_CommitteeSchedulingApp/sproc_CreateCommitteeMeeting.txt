@@ -1,0 +1,39 @@
+﻿
+GO
+/****** Object:  StoredProcedure [dbo].[sproc_CreateNewCommitteeMeeting]    Script Date: 11/04/2015 01:06:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[sproc_CreateNewCommitteeMeeting]
+	  @meetingdate datetime
+	 ,@committeeid int
+	 ,@roomid int
+	 ,@starttime varchar(100)
+	 ,@endtime varchar(100)
+	
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+  DECLARE @sessionCode varchar(100)
+  SELECT @SessionCode = SessionCode FROM [SessionDetail] WHERE IsCurrent = 1
+ 
+  DECLARE @sessionID int
+  SELECT @sessionID = SessionID FROM [SessionDetail] WHERE IsCurrent = 1
+  
+  
+  INSERT INTO CommitteeMeeting
+		(SessionID,SessionCode,CommitteeID,MeetingDateTime,RoomID,StartTime,EndTime,Transcribed,Active)
+  VALUES 
+		(@sessionID,@sessionCode,@committeeid,@meetingdate,@roomid,@starttime,@endtime,0,1)
+   
+
+END
