@@ -1,0 +1,40 @@
+﻿
+GO
+/****** Object:  StoredProcedure [dbo].[sproc_EditCommitteeMeeting]    Script Date: 11/04/2015 01:08:09 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[sproc_EditCommitteeMeeting]
+	  @meetingid int
+	 ,@meetingdate datetime
+	 ,@committeeid int
+	 ,@roomid int
+	 ,@starttime varchar(100)
+	 ,@endtime varchar(100)
+	
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	UPDATE CommitteeMeeting
+	SET  MeetingDateTime = @meetingdate
+		,CommitteeID = @committeeid
+		,RoomID = @roomid
+		,StartTime = @starttime
+		,EndTime = @endtime
+	WHERE CommitteeMeetingID = @meetingid;
+	
+	
+
+  
+
+  
+END
