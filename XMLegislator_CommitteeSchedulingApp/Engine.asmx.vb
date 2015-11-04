@@ -13,6 +13,8 @@ Public Class Engine
 
     Public Class Committee
         Public CommitteeID As Integer
+        Public CommitteeTypeID As Integer
+        Public CommitteeType As String
         Public ChamberCode As String
         Public CommitteeName As String
         Public DefaultRoomID As Integer
@@ -24,16 +26,48 @@ Public Class Engine
     End Class
 
 
-
-
     <WebMethod()> _
-    Public Function LoadCommittees()
+    Public Function LoadCommitteeType()
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT CommitteeID, ChamberCode, CommitteeName, RoomID FROM Committee"
+            cmd.CommandText = "SELECT CommitteeTypeID, CommitteeType FROM CommitteeType"
+            Using da As New SqlDataAdapter
+                da.SelectCommand = cmd
+                da.Fill(dt)
+            End Using
+        End Using
+
+        Dim CommitteeList As New List(Of Committee)
+        If dt.Rows.Count > 0 Then
+            CommitteeList.Clear()
+            For Each item As DataRow In dt.Rows()
+                Dim C As New Committee
+                C.CommitteeTypeID = item("CommitteeTypeID")
+                C.CommitteeType = item("CommitteeType")
+              
+                CommitteeList.Add(C)
+            Next
+            Return CommitteeList
+        Else
+            Return "none"
+        End If
+
+
+        Return ""
+    End Function
+
+
+    <WebMethod()> _
+    Public Function LoadCommittees(ByVal CommitteeTypeID As Integer)
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim dt As New DataTable
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "SELECT CommitteeID, ChamberCode, CommitteeName, RoomID FROM Committee WHERE CommitteeTypeID = " & CommitteeTypeID
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -101,12 +135,6 @@ Public Class Engine
 
         ' added sproc_CreateNewCommitteeMeeting
 
-        '@meetingdate datetime
-        '@committeeid
-        '@roomid int
-        '@starttime int
-        '@endtime int
-
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
@@ -124,6 +152,13 @@ Public Class Engine
 
         Return "Hello World"
     End Function
+
+
+    <WebMethod()> _
+    Public Function LoadCommitteeDetails()
+        Return "Hello World"
+    End Function
+
 
 
     <WebMethod()> _

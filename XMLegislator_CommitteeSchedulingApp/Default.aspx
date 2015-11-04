@@ -51,11 +51,14 @@
   DataTextField="CommitteeName" 
   DataIdField="CommitteeMeetingID" 
   DataResourceField="RoomID" 
-  
+   
   ClientObjectName="dps1"
   TimeRangeSelectedHandling="JavaScript"
   TimeRangeSelectedJavaScript="timeRangeSelected(start, end, resource)"
-
+  eventClickHandling ="JavaScript"
+  EventClickJavaScript="eventClick(e);"
+      
+  
   CellGroupBy="Month"
   Scale="hour"
   BusinessBeginsHour="8"
@@ -82,14 +85,21 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="input-field col s6">
+                             <div class="input-field col s4">
+                                <label for="dlcommitteeType"><small>Committee Type</small></label>
+                                <br />
+                                <br />
+                                <select id="dlcommitteeType" class="comtypename browser-default"></select>
+
+                            </div>
+                            <div class="input-field col s4">
                                 <label for="dlcommittee"><small>Committee</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommittee" class="comname browser-default"></select>
 
                             </div>
-                            <div class="input-field col s6">
+                            <div class="input-field col s4">
                                 <label for="roomdropdown"><small>Building / Room</small></label>
                                 <br />
                                 <br />
@@ -124,6 +134,66 @@
             </div>
         </div>
 
+        
+        <div id="editmodal" class="modal modal-fixed-footer">
+            <div class="modal-content">
+                <div class="row">
+                    <div class="col s12">
+                        <div class="row" style="margin-bottom: 0px">
+                            <div class="col s12">
+                                <h4><b>Create New Meeting</b></h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                               <div class="input-field col s4">
+                                <label for="dlcommitteeType2"><small>Committee Type</small></label>
+                                <br />
+                                <br />
+                                <select id="dlcommitteeType2" class="comtypename browser-default"></select>
+
+                            </div>
+                            <div class="input-field col s4">
+                                <label for="dlcommittee2"><small>Committee</small></label>
+                                <br />
+                                <br />
+                                <select id="dlcommittee2" class="comname browser-default"></select>
+
+                            </div>
+                            <div class="input-field col s4">
+                                <label for="roomdropdown2"><small>Building / Room</small></label>
+                                <br />
+                                <br />
+                                <select id="roomdropdown2" class="roomname browser-default"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="thedate2" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom: 0px" />
+                                <label for="thedate">Meeting Day</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col l6 s6" style="margin-top: 0px">
+                                <label><small>Start Time</small></label>
+                                <br />
+                                <input id="theStartTime2" style="margin-top: 12px" type="time" />
+                            </div>
+                            <div class="input-field col l6 s6" style="margin-top: 0px">
+                                <label><small>End Time</small></label>
+                                <br />
+                                <input id="theEndTime2" style="margin-top: 12px" type="time" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <br />
+            </div>
+            <div class="modal-footer">
+                <a href="#!" id="btnEditMeeting" class="modal-action modal-close waves-effect btn green ">SAVE CHANGES</a>
+            </div>
+        </div>
+
 
 
     </form>
@@ -145,17 +215,55 @@
         var optionobject;
         var options = [];
 
-        loaddropdown();
+        loadCommitteeType()
         loadrooms();
+      
+
+        function loadCommitteeType() {
+
+            var options;
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/LoadCommitteeType",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(".comname").empty();
+
+                    $.each(result, function (index, item) {
+
+                        options = "<option  data-comtypeid=" + item.CommitteeTypeID + ">" + item.CommitteeType + "</option>"
+                        $(options).appendTo(".comtypename");
+
+                    })
+
+                    var baseoption = "<option>-- No committee Type selected --</option>"
+                    $(baseoption).prependTo(".comtypename");
+
+                },
+                failure: function (msg) {
+                    alert(msg);
+                },
+                error: function (err) {
+                    alert(err);
+                }
+            }) //end ajax
 
 
-        function loaddropdown() {
+            //  return "<select class='selectit'>" + options + "</select>"
+        }
+
+
+        function loaddropdown(committeeTypeID) {
 
             var options;
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/LoadCommittees",
-                data: "{}",
+                data: "{CommitteeTypeID:'"+ committeeTypeID +"'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -175,10 +283,10 @@
 
                 },
                 failure: function (msg) {
-                    alert(msg);
+                   
                 },
                 error: function (err) {
-                    alert(err);
+                   
                 }
             }) //end ajax
 
@@ -333,7 +441,16 @@
         })
 
        
-       
+        function eventClick(e) {
+            var meetingid = e.value();
+            $("#editmodal").openModal();
+          
+        }
+
+        $(".comtypename").change(function () {
+            var comtype = $('.comtypename option:selected').attr("data-comtypeid");
+            loaddropdown(comtype);
+        })
 
   
     </script>
