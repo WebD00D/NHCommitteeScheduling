@@ -17,8 +17,13 @@ Public Class Engine
         Public CommitteeType As String
         Public ChamberCode As String
         Public CommitteeName As String
+        Public CommitteeMeetingID As Integer
+        Public MeetingDateTime As Date
         Public DefaultRoomID As Integer
+        Public StartTime As Date
+        Public EndTime As Date
     End Class
+
 
     Public Class Room
         Public RoomID As Integer
@@ -155,7 +160,39 @@ Public Class Engine
 
 
     <WebMethod()> _
-    Public Function LoadCommitteeDetails()
+    Public Function GetMeetingDetails(ByVal CommitteeMeetingID As Integer)
+
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim dt As New DataTable
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            Using da As New SqlDataAdapter
+                da.SelectCommand = cmd
+                da.Fill(dt)
+            End Using
+        End Using
+
+        Dim CommitteeList As New List(Of Committee)
+        If dt.Rows.Count > 0 Then
+            CommitteeList.Clear()
+            For Each item As DataRow In dt.Rows()
+                Dim C As New Committee
+                C.CommitteeMeetingID = item("CommitteeMeetingID")
+                C.CommitteeID = item("CommitteeID")
+                C.CommitteeTypeID = item("CommitteeTypeID")
+                C.MeetingDateTime = item("MeetingDateTime")
+                C.DefaultRoomID = item("RoomID")
+                C.StartTime = item("StartTime")
+                C.EndTime = item("EndTime")
+                CommitteeList.Add(C)
+            Next
+            Return CommitteeList
+        Else
+            Return "none"
+        End If
+
         Return "Hello World"
     End Function
 

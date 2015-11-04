@@ -235,7 +235,7 @@
 
                     $.each(result, function (index, item) {
 
-                        options = "<option  data-comtypeid=" + item.CommitteeTypeID + ">" + item.CommitteeType + "</option>"
+                        options = "<option val=" + item.CommitteeTypeID + "  data-comtypeid=" + item.CommitteeTypeID + ">" + item.CommitteeType + "</option>"
                         $(options).appendTo(".comtypename");
 
                     })
@@ -273,7 +273,7 @@
 
                     $.each(result, function (index, item) {
 
-                        options = "<option  data-comid=" + item.CommitteeID + ">" + item.CommitteeName + "</option>"
+                        options = "<option val=" + item.CommitteeID + "  data-comid=" + item.CommitteeID + ">" + item.CommitteeName + "</option>"
                         $(options).appendTo(".comname");
 
                     })
@@ -417,17 +417,8 @@
                 success: function (data) {
 
                     var result = data.d;
-                    $(".roomname").empty();
+                    window.location.reload(true);
 
-                    $.each(result, function (index, item) {
-
-                        options = "<option val=" + item.RoomID + " data-roomid=" + item.RoomID + ">" + item.RoomName + "</option>"
-                        $(options).appendTo(".roomname");
-
-                    })
-
-                    var baseoption = "<option>-- No room selected --</option>"
-                    $(baseoption).prependTo(".roomname");
 
                 },
                 failure: function (msg) {
@@ -441,16 +432,73 @@
         })
 
        
-        function eventClick(e) {
-            var meetingid = e.value();
-            $("#editmodal").openModal();
-          
-        }
-
+ 
         $(".comtypename").change(function () {
             var comtype = $('.comtypename option:selected').attr("data-comtypeid");
             loaddropdown(comtype);
         })
+
+       
+
+        function eventClick(e) {
+            var meetingid = e.value();
+            var committeeId;
+            var committeeTypeId;
+            var meetingDateTime;
+            var defaultRoomId;
+            var startTime;
+            var endTime;
+
+            // get meeting details and set pertinent variables needed to call remaining methods
+
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/GetMeetingDetails",
+                data: "{CommitteeMeetingID:'"+ meetingid +"'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                 
+                    $.each(result, function (index, item) {
+
+                        committeeId = item.CommitteeID;
+                        committeeTypeId = item.CommitteeTypeID;
+                        meetingDateTime = item.MeetingDateTime;
+                        defaultRoomId = item.DefaultRoomID;
+                        startTime = item.StartTime;
+                        endTime = item.EndTime;
+
+                    })
+
+                    console.log('committee type id = ' + committeeTypeId + ' committee id = ' + committeeId);
+                    $("#dlcommitteeType2 option[val=" + committeeTypeId + "]").prop("selected", true);
+                   
+
+                },
+                failure: function (msg) {
+                    console.log(msg)
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            }) //end ajax
+
+           
+            // load committee types
+            // load committee names
+            // load rooms
+           
+
+            $("#editmodal").openModal();
+
+        }
+
+        function loadEditableCommittees(comid) {
+            loaddropdown(comid);
+            $("#dlcommittee2 option[val=" + committeeId + "]").prop("selected", true);
+        }
 
   
     </script>
