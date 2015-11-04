@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "XMLegislator_CommitteeSchedulingApp", "XMLegislator_CommitteeSchedulingApp\XMLegislator_CommitteeSchedulingApp.vbproj", "{A14F147D-B6DF-491F-A059-F4965BC8DB5E}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NHCommitteeScheduling_InstallWizard", "NHCommitteeScheduling_InstallWizard\NHCommitteeScheduling_InstallWizard.vdproj", "{1615E057-BBDB-4E93-B80F-357CB5516408}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{A14F147D-B6DF-491F-A059-F4965BC8DB5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A14F147D-B6DF-491F-A059-F4965BC8DB5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A14F147D-B6DF-491F-A059-F4965BC8DB5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1615E057-BBDB-4E93-B80F-357CB5516408}.Debug|Any CPU.ActiveCfg = Debug
+		{1615E057-BBDB-4E93-B80F-357CB5516408}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
