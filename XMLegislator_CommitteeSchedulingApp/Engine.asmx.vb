@@ -22,6 +22,7 @@ Public Class Engine
         Public DefaultRoomID As Integer
         Public StartTime As String
         Public EndTime As String
+        Public BillListHTML As String
     End Class
 
 
@@ -240,8 +241,77 @@ Public Class Engine
     End Function
 
     <WebMethod()> _
+    Public Function GetBillList(ByVal CommitteeMeetingID As Integer)
+
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim dt As New DataTable
+
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = " SELECT LegislationID FROM AgendaSupport WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            Using da As New SqlDataAdapter
+                da.SelectCommand = cmd
+                da.Fill(dt)
+            End Using
+            cmd.Connection.Close()
+        End Using
+
+        If dt.Rows.Count > 0 Then
+            Dim list As New List(Of Integer)
+            For Each row As DataRow In dt.Rows()
+                list.Add(row("LegislationID"))
+            Next
+
+            Dim BillList As String = String.Join(",", list.ToArray())
+
+            dt.Clear()
+            dt.Columns.Clear()
+
+            Dim commandtext As String = " SELECT cm.CommitteeMeetingID, a.AgendaSupportTitle , l.LegislationNbr , d.DocumentTypeCode " & _
+                                        " FROM CommitteeMeeting cm " & _
+                                        " INNER JOIN AgendaSupport a on cm.CommitteeMeetingID = a.CommitteeMeetingID " & _
+                                        " INNER JOIN Legislation l on a.LegislationID = l.LegislationID " & _
+                                        " INNER JOIN DocumentType d on l.DocumentTypeID = d.DocumentTypeID " & _
+                                        " WHERE cm.CommitteeMeetingID = " + CStr(CommitteeMeetingID) + " AND l.LegislationID IN (" + BillList + ") "
+
+            Using cmd As SqlCommand = con.CreateCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.Text
+                cmd.CommandText = commandtext
+                Using da As New SqlDataAdapter
+                    da.SelectCommand = cmd
+                    da.Fill(dt)
+                End Using
+                cmd.Connection.Close()
+            End Using
+
+            Dim HTML As New StringBuilder
+            HTML.Append("<ul>")
+            For Each row As DataRow In dt.Rows()
+                HTML.Append("<li><b>" + row("AgendaSupportTitle") + " --> </b>" + row("DocumentTypeCode") + "" + row("LegislationNbr") + "</li>")
+            Next
+            HTML.Append("</ul>")
+
+            Return HTML.ToString()
+        Else
+            Return " "
+        End If
+
+    End Function
+
+
+    <WebMethod()> _
     Public Function HelloWorld() As String
         Return "Hello World"
     End Function
+
+
+
+ 
+
+
 
 End Class

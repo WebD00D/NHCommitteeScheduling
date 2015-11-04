@@ -142,7 +142,7 @@
                     <div class="col s12">
                         <div class="row" style="margin-bottom: 0px">
                             <div class="col s12">
-                                <h4><b>Create New Meeting</b></h4>
+                                <h4><b>Edit Meeting</b></h4>
                             </div>
                         </div>
                         <div class="row">
@@ -173,7 +173,7 @@
                                 <label for="thedate">Meeting Day</label>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" style="margin-bottom:0px">
                             <div class="input-field col l6 s6" style="margin-top: 0px">
                                 <label><small>Start Time</small></label>
                                 <br />
@@ -184,6 +184,15 @@
                                 <br />
                                 <input id="theEndTime2" style="margin-top: 12px" type="time" />
                             </div>
+                        </div>
+                         <div class="row">
+                            <div class="input-field col l12 s12" style="margin-top: 0px">
+                                <label><small>Agenda</small></label>
+                                <br />
+                                <div id="agendalist"></div>
+                              
+                            </div>
+                          
                         </div>
                     </div>
                 </div>
@@ -577,7 +586,7 @@
                     console.log('committee type id = ' + committeeTypeId + ' committee id = ' + committeeId);
                     $("#dlcommitteeType2 option[val=" + committeeTypeId + "]").prop("selected", true);
                     loadEditableCommittees(committeeTypeId, committeeId, defaultRoomId);
-                    
+                    getBillList(meetingid);
 
                     var startDate = new Date(startTime);
                     var endDate = new Date(endTime);
@@ -629,6 +638,30 @@
 
             $("#editmodal").openModal();
 
+        }
+
+        function getBillList(meetingid) {
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/GetBillList",
+                data: "{CommitteeMeetingID:'"+ meetingid +"'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(result).appendTo("#agendalist");
+                    
+
+                },
+                failure: function (msg) {
+                    console.log(msg);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            }) //end ajax
+          
         }
 
         function loadEditableCommittees(comtype,comid,room) {
