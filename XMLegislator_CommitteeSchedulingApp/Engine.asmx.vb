@@ -23,6 +23,7 @@ Public Class Engine
         Public StartTime As String
         Public EndTime As String
         Public BillListHTML As String
+        Public MeetingNotes As String
     End Class
 
 
@@ -107,7 +108,7 @@ Public Class Engine
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT RoomID,RoomName From Room WHERE RoomNbr != 000"
+            cmd.CommandText = "SELECT RoomID,RoomName From Room WHERE RoomNbr != '000'"
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -133,7 +134,7 @@ Public Class Engine
     End Function
 
     <WebMethod()> _
-    Public Function DateEngine(ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String)
+    Public Function DateEngine(ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -152,6 +153,7 @@ Public Class Engine
             cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
             cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
             cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+            cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
             cmd.ExecuteNonQuery()
             cmd.Connection.Close()
         End Using
@@ -160,7 +162,7 @@ Public Class Engine
     End Function
 
     <WebMethod()> _
-    Public Function DateEngine2(ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String)
+    Public Function DateEngine2(ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -180,6 +182,7 @@ Public Class Engine
             cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
             cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
             cmd.Parameters.AddWithValue("@meetingid", meetingId)
+            cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
             cmd.ExecuteNonQuery()
             cmd.Connection.Close()
         End Using
@@ -196,7 +199,7 @@ Public Class Engine
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,ISNULL(cm.MeetingNotes,'') MeetingNotes,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -215,6 +218,7 @@ Public Class Engine
                 C.DefaultRoomID = item("RoomID")
                 C.StartTime = item("StartTime")
                 C.EndTime = item("EndTime")
+                C.MeetingNotes = item("MeetingNotes")
                 CommitteeList.Add(C)
             Next
             Return CommitteeList
@@ -302,6 +306,8 @@ Public Class Engine
 
     End Function
 
+
+   
 
     <WebMethod()> _
     Public Function HelloWorld() As String

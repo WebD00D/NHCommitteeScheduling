@@ -9,6 +9,7 @@
     <title>NH Committee Scheduling</title>
    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css" />
+    
     <style type="text/css">
         .comname {
             color:black;
@@ -20,6 +21,10 @@
             padding:10px;
             width:100%;
         }
+        nav ul li:hover, nav ul li.active {
+            background-color: rgba(01,01,01,0.0);
+        }
+      
     </style>
 </head>
     
@@ -30,11 +35,20 @@
     <form id="form1" runat="server">
      <nav>
     <div class="nav-wrapper blue-grey">
-      <a href="#" class="brand-logo" style="margin-left:50px"><b><small>NH Committee Scheduler</small></b></a>
-      <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <li><a href="sass.html">Log Out</a></li>
+
+        <div class="nav-wrapper">
+            <a href="#" class="brand-logo" style="margin-left: 50px"><b><small>NH Committee Scheduler</small></b></a>
+            <ul id="nav-mobile" class="right" style="margin-right:25px">
+               
+                <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date"></asp:TextBox></span>
+                   
+                </li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkGoToDate" runat="server" CssClass="btn">GO TO DATE</asp:LinkButton></span></li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetDate" runat="server" CssClass="btn grey lighten-4 black-text">RESET</asp:LinkButton></span></li>
+                
+            </ul>
+        </div>
      
-      </ul>
     </div>
   </nav>
         
@@ -64,7 +78,7 @@
   Scale="hour"
   BusinessBeginsHour="8"
   BusinessEndsHour="18"
-  ShowNonBusiness="false"
+  ShowNonBusiness="true"
   EventMoveHandling="CallBack" 
   >
        <TimeHeaders>
@@ -76,8 +90,8 @@
 </DayPilot:DayPilotScheduler>
     </div>
 
-        <div id="modal1" class="modal modal-fixed-footer">
-            <div class="modal-content">
+        <div id="modal1" class="modal modal-fixed-footer" style="min-height:85%">
+            <div class="modal-content" >
                 <div class="row">
                     <div class="col s12">
                         <div class="row" style="margin-bottom: 0px">
@@ -86,21 +100,21 @@
                             </div>
                         </div>
                         <div class="row">
-                             <div class="input-field col s4">
+                             <div class="input-field col s12">
                                 <label for="dlcommitteeType"><small>Committee Type</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommitteeType" class="comtypename browser-default"></select>
 
                             </div>
-                            <div class="input-field col s4">
+                            <div class="input-field col s6">
                                 <label for="dlcommittee"><small>Committee</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommittee" class="comname browser-default"></select>
 
                             </div>
-                            <div class="input-field col s4">
+                            <div class="input-field col s6">
                                 <label for="roomdropdown"><small>Building / Room</small></label>
                                 <br />
                                 <br />
@@ -125,6 +139,12 @@
                                 <input id="theEndTime" style="margin-top: 12px" type="time" />
                             </div>
                         </div>
+                        <div class="row">
+                             <div class="input-field col s12">
+                                <input id="txtMeetingNotes" type="text" placeholder="Some notes here..." style="margin-bottom: 0px" />
+                                <label for="txtMeetingNotes">Meeting Notes</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <br />
@@ -136,7 +156,7 @@
         </div>
 
         
-        <div id="editmodal" class="modal modal-fixed-footer">
+        <div id="editmodal" class="modal modal-fixed-footer" style="min-height:85%">
             <div class="modal-content">
                 <div class="row">
                     <div class="col s12">
@@ -146,21 +166,21 @@
                             </div>
                         </div>
                         <div class="row">
-                               <div class="input-field col s4">
+                               <div class="input-field col s12">
                                 <label for="dlcommitteeType2"><small>Committee Type</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommitteeType2" class="comtypename browser-default"></select>
 
                             </div>
-                            <div class="input-field col s4">
+                            <div class="input-field col s6">
                                 <label for="dlcommittee2"><small>Committee</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommittee2" class="comname browser-default"></select>
 
                             </div>
-                            <div class="input-field col s4">
+                            <div class="input-field col s6">
                                 <label for="roomdropdown2"><small>Building / Room</small></label>
                                 <br />
                                 <br />
@@ -186,6 +206,12 @@
                             </div>
                         </div>
                          <div class="row">
+                             <div class="input-field col s12">
+                                <input id="txtEditMeetingNotes" type="text" placeholder="Some notes here..." style="margin-bottom: 0px" />
+                                <label for="txtEditMeetingNotes">Meeting Notes</label>
+                            </div>
+                        </div>
+                         <div class="row">
                             <div class="input-field col l12 s12" style="margin-top: 0px">
                                 <label><small>Agenda</small></label>
                                 <br />
@@ -200,7 +226,10 @@
                 <br />
             </div>
             <div class="modal-footer">
-                <a href="#!" id="btnEditMeeting" class="modal-action modal-close waves-effect btn green ">SAVE CHANGES</a>
+               
+                <a href="#!" id="btnEditMeeting" class="modal-action modal-close waves-effect btn green " >SAVE CHANGES</a>
+              
+         
             </div>
         </div>
 
@@ -255,10 +284,10 @@
 
                 },
                 failure: function (msg) {
-                    alert(msg);
+                    console.log(msg);
                 },
                 error: function (err) {
-                    alert(err);
+                    console.log(err);
                 }
             }) //end ajax
 
@@ -268,7 +297,7 @@
 
 
         function loaddropdown(committeeTypeID) {
-
+            
             var options;
             $.ajax({
                 type: "POST",
@@ -370,10 +399,10 @@
 
                 },
                 failure: function (msg) {
-                    alert(msg);
+                    console.log(msg);
                 },
                 error: function (err) {
-                    alert(err);
+                    console.log(err);
                 }
             }) //end ajax
 
@@ -451,6 +480,7 @@
             meetingdate = new Date($("#thedate").val());
             var startTime = $("#theStartTime").val();
             var endTime = $("#theEndTime").val();
+            var meetingNotes = $("#txtMeetingNotes").val();
             var day = meetingdate.getDate() + 1;
             var month = meetingdate.getMonth() + 1;
             var year = meetingdate.getFullYear();
@@ -460,7 +490,7 @@
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine",
-                data: "{FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'"+ committeeId +"',RoomID:'"+ roomid +"'}",
+                data: "{FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'"+ meetingNotes +"'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -508,11 +538,12 @@
             var year = meetingdate2.getFullYear();
             var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
             var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+            var editedNotes = $("#txtEditMeetingNotes").val();
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine2",
-                data: "{meetingId:'"+ meetingid +"', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "'}",
+                data: "{meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -523,14 +554,16 @@
 
                 },
                 failure: function (msg) {
-                    alert(msg);
+                    console.log(msg);
                 },
                 error: function (err) {
-                    alert(err);
+                    console.log(err);
                 }
             }) //end ajax
 
         })
+
+        
 
 
        
@@ -557,8 +590,10 @@
             var defaultRoomId;
             var startTime;
             var endTime;
+            var meetingnotes;
 
             $("#btnEditMeeting").attr('data-meeting', meetingid);
+        
 
             // get meeting details and set pertinent variables needed to call remaining methods
 
@@ -580,6 +615,7 @@
                         defaultRoomId = item.DefaultRoomID;
                         startTime = item.StartTime;
                         endTime = item.EndTime;
+                        meetingnotes = item.MeetingNotes;
 
                     })
 
@@ -590,6 +626,8 @@
 
                     var startDate = new Date(startTime);
                     var endDate = new Date(endTime);
+
+                    $("#txtEditMeetingNotes").val(meetingnotes);
                  
 
                     var startDay = ("0" + startDate.getDate()).slice(-2);

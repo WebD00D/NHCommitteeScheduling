@@ -6,7 +6,9 @@ Public Class _Default
         If Not IsPostBack Then
             LoadResources()
             DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
-            DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+            ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+            DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+
 
             DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
             DayPilotScheduler1.DataBind()
@@ -64,5 +66,50 @@ Public Class _Default
             cmd.Parameters.AddWithValue("resource", resource)
             cmd.ExecuteNonQuery()
         End Using
+    End Sub
+
+    
+    Protected Sub lnkGoToDate_Click(sender As Object, e As EventArgs) Handles lnkGoToDate.Click
+
+        If Trim(dpJumpToDate.Text) = String.Empty Then
+            LoadResources()
+            DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
+            ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+            DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+
+
+            DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+            DayPilotScheduler1.DataBind()
+            DayPilotScheduler1.SetScrollX(Date.Today)
+            Exit Sub
+        End If
+
+        LoadResources()
+        Dim d = CDate(dpJumpToDate.Text())
+        Dim DateToSet = New Date(d.Year, d.Month, d.Day) ' Year Month Day
+        DayPilotScheduler1.StartDate = New Date(d.Year, d.Month, d.Day)
+        ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+        DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+
+
+        DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+        DayPilotScheduler1.DataBind()
+
+
+
+        DayPilotScheduler1.SetScrollX(DateToSet)
+        dpJumpToDate.Text = " "
+    End Sub
+
+    Protected Sub lnkResetDate_Click(sender As Object, e As EventArgs) Handles lnkResetDate.Click
+        LoadResources()
+        DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
+        ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+        DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+
+
+        DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+        DayPilotScheduler1.DataBind()
+        DayPilotScheduler1.SetScrollX(Date.Today)
     End Sub
 End Class
