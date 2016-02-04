@@ -45,6 +45,7 @@ Public Class Engine
                 da.SelectCommand = cmd
                 da.Fill(dt)
             End Using
+
         End Using
 
         Dim CommitteeList As New List(Of Committee)
