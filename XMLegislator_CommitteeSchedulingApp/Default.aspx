@@ -76,8 +76,8 @@
   
   CellGroupBy="Month"
   Scale="hour"
-  BusinessBeginsHour="8"
-  BusinessEndsHour="18"
+  BusinessBeginsHour="7"
+  BusinessEndsHour="21"
   ShowNonBusiness="true"
   EventMoveHandling="CallBack" 
   >
