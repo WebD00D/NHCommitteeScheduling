@@ -8,8 +8,7 @@ Public Class _Default
             DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
             ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
             DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
-
-
+           
             DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
             DayPilotScheduler1.DataBind()
             DayPilotScheduler1.SetScrollX(Date.Today)
@@ -111,5 +110,31 @@ Public Class _Default
         DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
         DayPilotScheduler1.DataBind()
         DayPilotScheduler1.SetScrollX(Date.Today)
+    End Sub
+
+    Protected Sub lnkShowSaturdaySunday_Click(sender As Object, e As EventArgs) Handles lnkShowSaturdaySunday.Click
+        LoadResources()
+        DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
+        ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+        DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+        DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+        DayPilotScheduler1.DataBind()
+        DayPilotScheduler1.SetScrollX(Date.Today)
+        DayPilotScheduler1.ShowNonBusiness = True
+       
+    End Sub
+
+    Protected Sub lnkResetBusinessDay_Click(sender As Object, e As EventArgs) Handles lnkResetBusinessDay.Click
+        LoadResources()
+        DayPilotScheduler1.StartDate = New Date(Date.Today.Year, Date.Today.Month, Date.Today.Day)
+        ' DayPilotScheduler1.Days = Date.DaysInMonth(Date.Today.Year, Date.Today.Month) - Date.Today.Day
+        DayPilotScheduler1.Days = 31 'Year.Days(DateTime.Today.Year)
+        DayPilotScheduler1.DataSource = DbGetEvents(DayPilotScheduler1.StartDate, DayPilotScheduler1.Days)
+        DayPilotScheduler1.DataBind()
+        DayPilotScheduler1.SetScrollX(Date.Today)
+        DayPilotScheduler1.ShowNonBusiness = False
+        DayPilotScheduler1.BusinessEndsHour = 21
+        DayPilotScheduler1.BusinessBeginsHour = 7
+        
     End Sub
 End Class

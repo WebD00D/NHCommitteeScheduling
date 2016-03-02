@@ -29,10 +29,9 @@
 </head>
     
 
-
-
 <body>
     <form id="form1" runat="server">
+         <div>
      <nav>
     <div class="nav-wrapper blue-grey">
 
@@ -40,20 +39,23 @@
             <a href="#" class="brand-logo" style="margin-left: 50px"><b><small>NH Committee Scheduler</small></b></a>
             <ul id="nav-mobile" class="right" style="margin-right:25px">
                
-                <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date"></asp:TextBox></span>
-                   
-                </li>
-                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkGoToDate" runat="server" CssClass="btn">GO TO DATE</asp:LinkButton></span></li>
-                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetDate" runat="server" CssClass="btn grey lighten-4 black-text">RESET</asp:LinkButton></span></li>
-                
+                <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date"></asp:TextBox></span></li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkGoToDate" runat="server" CssClass="btn"><b>GO TO DATE</b></asp:LinkButton></span></li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetDate" runat="server" CssClass="btn grey lighten-4 black-text">RESET DATE</asp:LinkButton></span></li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkShowSaturdaySunday" runat="server" CssClass="btn">VIEW SAT/SUN</asp:LinkButton></span></li>
+                <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetBusinessDay" runat="server" CssClass="btn grey lighten-4 black-text">RESET HOURS</asp:LinkButton></span></li>
             </ul>
         </div>
      
     </div>
   </nav>
+             </div>
         
         
-    <div>
+    <div style="height:100vh">
+
+
+       
         
    <DayPilot:DayPilotScheduler
         
@@ -71,15 +73,17 @@
   TimeRangeSelectedJavaScript="timeRangeSelected(start, end, resource)"
   eventClickHandling ="JavaScript"
   EventClickJavaScript="eventClick(e);"
-   eventResizeHandling ="JavaScript"
-      eventResizeJavascript="onEventResize(e, newStart, newEnd) "
   
   CellGroupBy="Month"
   Scale="hour"
-  BusinessBeginsHour="8"
-  BusinessEndsHour="18"
-  ShowNonBusiness="true"
-  EventMoveHandling="CallBack" 
+
+  BusinessBeginsHour="7"
+  BusinessEndsHour="21"
+  ShowNonBusiness="false"
+  HeightSpec="Parent100Pct"
+  
+  
+  
   >
        <TimeHeaders>
     <DayPilot:TimeHeader GroupBy="Month" Format="MMMM yyyy" />
@@ -107,6 +111,14 @@
                                 <select id="dlcommitteeType" class="comtypename browser-default"></select>
 
                             </div>
+
+                            <div class="input-field col s12">
+                                <label for="dlHearingType"><small>HearingType Type</small></label>
+                                <br />
+                                <br />
+                                <select id="dlHearingType" class="hearingtype browser-default"></select>
+                            </div>
+
                             <div class="input-field col s6">
                                 <label for="dlcommittee"><small>Committee</small></label>
                                 <br />
@@ -138,7 +150,21 @@
                                 <br />
                                 <input id="theEndTime" style="margin-top: 12px" type="time" />
                             </div>
+                                <div class="input-field col s6" style="margin-top:0px">
+                                <label for="ddlDoMultipleBooking"><small>Create Multiple Booking</small></label>
+                               <br /><br />
+                                <select id="ddlDoMultipleBooking" class="browser-default">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                                </div>
+
+                             <div class="input-field col s6" style="margin-top:35px">
+                                <input disabled="disabled" id="multipleBookingDate" type="date" placeholder="No time has been selected."  class="datepicker" style="margin-bottom: 0px" />
+                                <label for="multipleBookingDate">Multiple Booking End Date</label>
+                            </div>
                         </div>
+                       
                         <div class="row">
                              <div class="input-field col s12">
                                 <input id="txtMeetingNotes" type="text" placeholder="Some notes here..." style="margin-bottom: 0px" />
@@ -172,6 +198,12 @@
                                 <br />
                                 <select id="dlcommitteeType2" class="comtypename browser-default"></select>
 
+                            </div>
+                                <div class="input-field col s12">
+                                <label for="dlHearingType2"><small>HearingType Type</small></label>
+                                <br />
+                                <br />
+                                <select id="dlHearingType2" class="hearingtype browser-default"></select>
                             </div>
                             <div class="input-field col s6">
                                 <label for="dlcommittee2"><small>Committee</small></label>
@@ -228,7 +260,7 @@
             <div class="modal-footer">
                
                 <a href="#!" id="btnEditMeeting" class="modal-action modal-close waves-effect btn green " >SAVE CHANGES</a>
-              
+                 <a href="#!" id="btnDeleteMeeting" class="modal-action modal-close waves-effect btn red lighten-1 black-text " style="margin-left:10px;margin-right:10px" >DELETE</a>
          
             </div>
         </div>
@@ -247,6 +279,19 @@
                 selectYears: 2 
             });
             $('select').material_select();
+
+
+            $("#ddlDoMultipleBooking").change(function () {
+                var optionSelected = $("#ddlDoMultipleBooking option:selected").attr("value");
+                if (optionSelected === 'yes') {
+                    $("#multipleBookingDate").attr("disabled", false);
+                } else {
+                    $("#multipleBookingDate").attr("disabled", "disabled");
+                }
+            })
+
+
+
         })
     </script>
 
@@ -254,8 +299,76 @@
         var optionobject;
         var options = [];
 
-        loadCommitteeType()
+        loadCommitteeType();
         loadrooms();
+        loadHearingType();
+
+        function loadHearingType() {
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/LoadHearingTypes",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(".hearingtype").empty();
+
+                    $.each(result, function (index, item) {
+
+                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + ">" + item.HearingTypeName + "</option>"
+                        $(options).appendTo(".hearingtype");
+
+                    })
+
+                    var baseoption = "<option>-- No hearing Type selected --</option>"
+                    $(baseoption).prependTo(".hearingtype");
+
+                },
+                failure: function (msg) {
+                    console.log(msg);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            }) //end ajax
+        }
+
+
+        function loadHearingType2(hearingType) {
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/LoadHearingTypes",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    $(".hearingtype").empty();
+
+                    $.each(result, function (index, item) {
+
+                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + ">" + item.HearingTypeName + "</option>"
+                        $(options).appendTo(".hearingtype");
+
+                    })
+
+                    var baseoption = "<option>-- No hearing Type selected --</option>"
+                    $(baseoption).prependTo(".hearingtype");
+                    $(".hearingtype option[val=" + hearingType + "]").prop("selected", true);
+                    
+                },
+                failure: function (msg) {
+                    console.log(msg);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            }) //end ajax
+        }
+
       
 
         function loadCommitteeType() {
@@ -294,6 +407,9 @@
 
             //  return "<select class='selectit'>" + options + "</select>"
         }
+
+
+
 
 
         function loaddropdown(committeeTypeID) {
@@ -373,6 +489,9 @@
         }
 
 
+        
+
+
         function loadrooms() {
 
             var options;
@@ -426,6 +545,8 @@
             var endHours = endDate.getUTCHours();
 
             $('#thedate').val(today);
+            $('#multipleBookingDate').val(today);
+            
 
             var startFormatted;
             if (startHours < 10) {
@@ -467,9 +588,14 @@
             //get the set values
             var committeeId = $("#dlcommittee option:selected").attr("data-comid");
             var roomid = $("#roomdropdown option:selected").attr("data-roomid");
+            var hearingTypeID = $("#dlHearingType option:selected").attr("val");
 
             if (typeof committeeId === "undefined") {
                 alert("A committee has not been selected.");
+                return;
+            }
+            if (typeof hearingTypeID === "undefined") {
+                alert("A hearing type has not been selected.");
                 return;
             }
             if (typeof roomid === "undefined") {
@@ -487,10 +613,16 @@
             var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
             var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
 
+            var MultipleRoomBooking = $("#ddlDoMultipleBooking option:selected").attr("value");
+            var MultipleRoomBookingDate = $("#multipleBookingDate").val();
+
+          
+            meetingNotes = meetingNotes.replace(/'/g, "@");
+
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine",
-                data: "{FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'"+ meetingNotes +"'}",
+                data: "{MultipleRoomBooking:'"+ MultipleRoomBooking +"',MultipleRoomBookingDate:'"+ MultipleRoomBookingDate +"',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -511,6 +643,32 @@
         })
 
 
+        $("#btnDeleteMeeting").click(function () {
+            var meetingid = $(this).attr('data-meeting');
+           
+            $.ajax({
+                type: "POST",
+                url: "Engine.asmx/DeleteMeeting",
+                data: "{MeetingID:'" + parseInt(meetingid) + "'}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                    var result = data.d;
+                    window.location.reload(true);
+
+
+                },
+                failure: function (msg) {
+                    console.log(msg);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            }) //end ajax
+        })
+
+
         
         var meetingdate2;
         $("#btnEditMeeting").click(function () {
@@ -520,9 +678,15 @@
             //get the set values
             var committeeId = $("#dlcommittee2 option:selected").attr("data-comid");
             var roomid = $("#roomdropdown2 option:selected").attr("data-roomid");
+            var hearingTypeID = $("#dlHearingType2 option:selected").attr("val");
+         
 
             if (typeof committeeId === "undefined") {
                 alert("A committee has not been selected.");
+                return;
+            }
+            if (typeof hearingTypeID === "undefined") {
+                alert("A hearing type has not been selected.");
                 return;
             }
             if (typeof roomid === "undefined") {
@@ -540,10 +704,12 @@
             var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
             var editedNotes = $("#txtEditMeetingNotes").val();
 
+            editedNotes = editedNotes.replace(/'/g, "@");
+
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine2",
-                data: "{meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
+                data: "{HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -591,8 +757,10 @@
             var startTime;
             var endTime;
             var meetingnotes;
+            var hearingTypeId;
 
             $("#btnEditMeeting").attr('data-meeting', meetingid);
+            $("#btnDeleteMeeting").attr('data-meeting', meetingid);
         
 
             // get meeting details and set pertinent variables needed to call remaining methods
@@ -616,6 +784,8 @@
                         startTime = item.StartTime;
                         endTime = item.EndTime;
                         meetingnotes = item.MeetingNotes;
+                        hearingTypeId = item.HearingTypeID;
+
 
                     })
 
@@ -623,6 +793,7 @@
                     $("#dlcommitteeType2 option[val=" + committeeTypeId + "]").prop("selected", true);
                     loadEditableCommittees(committeeTypeId, committeeId, defaultRoomId);
                     getBillList(meetingid);
+                    loadHearingType2(hearingTypeId);
 
                     var startDate = new Date(startTime);
                     var endDate = new Date(endTime);

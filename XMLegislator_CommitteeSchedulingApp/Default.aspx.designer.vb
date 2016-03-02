@@ -50,6 +50,24 @@ Partial Public Class _Default
     Protected WithEvents lnkResetDate As Global.System.Web.UI.WebControls.LinkButton
 
     '''<summary>
+    '''lnkShowSaturdaySunday control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents lnkShowSaturdaySunday As Global.System.Web.UI.WebControls.LinkButton
+
+    '''<summary>
+    '''lnkResetBusinessDay control.
+    '''</summary>
+    '''<remarks>
+    '''Auto-generated field.
+    '''To modify move field declaration from designer file to code-behind file.
+    '''</remarks>
+    Protected WithEvents lnkResetBusinessDay As Global.System.Web.UI.WebControls.LinkButton
+
+    '''<summary>
     '''DayPilotScheduler1 control.
     '''</summary>
     '''<remarks>
