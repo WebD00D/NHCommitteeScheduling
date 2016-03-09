@@ -28,6 +28,7 @@ Public Class Engine
         Public ContactName As String
         Public ContactPhone As String
         Public isDoubleRoom As Boolean
+        Public EquipmentList As String
     End Class
 
     Public Class Room
@@ -181,7 +182,7 @@ Public Class Engine
     End Function
 
     <WebMethod()> _
-    Public Function DateEngine(ByVal contactPhone As String, ByVal contactPerson As String, ByVal ComLongName As String, ByVal ComTypeID As String, ByVal CommitteeMeetingName As String, ByVal BookingFrequency As String, ByVal MultipleRoomBooking As String, ByVal MultipleRoomBookingDate As String, HearingTypeID As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
+    Public Function DateEngine(ByVal EquipmentList As String, ByVal contactPhone As String, ByVal contactPerson As String, ByVal ComLongName As String, ByVal ComTypeID As String, ByVal CommitteeMeetingName As String, ByVal BookingFrequency As String, ByVal MultipleRoomBooking As String, ByVal MultipleRoomBookingDate As String, HearingTypeID As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -191,6 +192,9 @@ Public Class Engine
         Dim dt As New DataTable
 
         MeetingNotes = MeetingNotes.Replace("@", "'")
+
+
+
 
         ' .. check if the room being booked is a double room. 
         Using cmd As SqlCommand = con.CreateCommand
@@ -363,7 +367,7 @@ Public Class Engine
 
         If Trim(contactPerson) = "" Then contactPerson = " "
         If Trim(contactPhone) = "" Then contactPhone = " "
-     
+
 
         For i As Integer = 0 To MeetingList.Count - 1
 
@@ -384,6 +388,7 @@ Public Class Engine
                     cmd.Parameters.AddWithValue("@yearid", TheYearID)
                     cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
                     cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
+                    cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                     cmd.ExecuteNonQuery()
                     cmd.Connection.Close()
                 End Using
@@ -405,6 +410,7 @@ Public Class Engine
                     cmd.Parameters.AddWithValue("@yearid", TheYearID)
                     cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
                     cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
+                    cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                     cmd.ExecuteNonQuery()
                     cmd.Connection.Close()
                 End Using
@@ -420,7 +426,7 @@ Public Class Engine
     End Function
 
     <WebMethod()> _
-    Public Function DateEngine2(ByVal ContactName As String, ByVal ContactPhone As String, ByVal HearingTypeID As Integer, ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
+    Public Function DateEngine2(ByVal EquipmentList As String, ByVal ContactName As String, ByVal ContactPhone As String, ByVal HearingTypeID As Integer, ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -431,7 +437,7 @@ Public Class Engine
         If Trim(ContactName) = "" Then ContactName = " "
         If Trim(ContactPhone) = "" Then ContactPhone = " "
 
-      
+
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
 
         ' Possible Scenarios
@@ -607,6 +613,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@yearid", TheYearID)
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -649,6 +656,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@yearid", TheYearID)
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -694,6 +702,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@yearid", TheYearID)
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -721,6 +730,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -748,6 +758,8 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@oldCommitteeID", currentMeetingCommitteeID)
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
 
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
@@ -786,6 +798,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@meetingid", meetingId)
                 cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
                 cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -820,6 +833,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@meetingid", meetingId)
                 cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
                 cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -843,6 +857,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
                 cmd.Parameters.AddWithValue("@meetingid", meetingId)
                 cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -865,7 +880,7 @@ Public Class Engine
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,ISNULL(cm.MeetingNotes,'') MeetingNotes,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime,cm.HearingTypeID,cm.ContactPerson,cm.ContactPhone,cm.isDoubleRoom FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,ISNULL(cm.MeetingNotes,'') MeetingNotes,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime,cm.HearingTypeID,cm.ContactPerson,cm.ContactPhone,cm.isDoubleRoom,cm.EquipmentList FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -886,6 +901,12 @@ Public Class Engine
                 C.EndTime = item("EndTime")
                 C.MeetingNotes = item("MeetingNotes")
                 C.HearingTypeID = item("HearingTypeID")
+
+                If IsDBNull(item("EquipmentList")) Then
+                    C.EquipmentList = " "
+                Else
+                    C.EquipmentList = item("EquipmentList")
+                End If
 
 
                 If IsDBNull(item("isDoubleRoom")) Then

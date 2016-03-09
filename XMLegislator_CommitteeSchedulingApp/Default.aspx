@@ -203,6 +203,41 @@
                                 <label for="multipleBookingDate">Multiple Booking End Date</label>
                             </div>
                         </div>
+
+                         <div class="row">
+                             <div class=" col s12">
+                                 <label>Equipment Needed</label>
+                                  <p>
+                                    <input type="checkbox" id="ckProjector" />
+                                    <label for="ckProjector" style="padding-right:10px">Projector</label>
+
+                                      <input type="checkbox" id="ckLaptop" />
+                                    <label for="ckLaptop" style="padding-right:10px">Laptop</label>
+
+                                      <input type="checkbox" id="ckScreen" />
+                                    <label for="ckScreen" style="padding-right:10px">Screen</label>
+
+                                      <input type="checkbox" id="ckFlipchart" />
+                                    <label for="ckFlipchart" style="padding-right:10px">Flip Chart</label>
+
+                                      <input type="checkbox" id="ckEasel" />
+                                    <label for="ckEasel" style="padding-right:10px">Easel</label>
+
+                                      <input type="checkbox" id="ckSpider" />
+                                    <label for="ckSpider" style="padding-right:10px">Spider Phone</label>
+
+                                      <input type="checkbox" id="ckMicrophone" />
+                                    <label for="ckMicrophone" style="padding-right:10px">Microphone</label>
+
+                                      <input type="checkbox" id="ckTrash" />
+                                    <label for="ckTrash" style="padding-right:10px">Trash Barrels</label>
+                                 
+
+                                      
+
+                                 </p>
+                            </div>
+                        </div>
                        
                         <div class="row">
                              <div class="input-field col s12">
@@ -290,6 +325,43 @@
                                 <input id="theEndTime2" style="margin-top: 12px" type="time" />
                             </div>
                         </div>
+
+                           <div class="row">
+                             <div class=" col s12">
+                                 <label>Equipment Needed</label>
+                                  <p>
+                                    <input type="checkbox" id="ckProjector2" />
+                                    <label for="ckProjector2" style="padding-right:10px">Projector</label>
+
+                                      <input type="checkbox" id="ckLaptop2" />
+                                    <label for="ckLaptop2" style="padding-right:10px">Laptop</label>
+
+                                      <input type="checkbox" id="ckScreen2" />
+                                    <label for="ckScreen2" style="padding-right:10px">Screen</label>
+
+                                      <input type="checkbox" id="ckFlipchart2" />
+                                    <label for="ckFlipchart2" style="padding-right:10px">Flip Chart</label>
+
+                                      <input type="checkbox" id="ckEasel2" />
+                                    <label for="ckEasel2" style="padding-right:10px">Easel</label>
+
+                                      <input type="checkbox" id="ckSpider2" />
+                                    <label for="ckSpider2" style="padding-right:10px">Spider Phone</label>
+
+                                      <input type="checkbox" id="ckMicrophone2" />
+                                    <label for="ckMicrophone2" style="padding-right:10px">Microphone</label>
+
+                                      <input type="checkbox" id="ckTrash2" />
+                                    <label for="ckTrash2" style="padding-right:10px">Trash Barrels</label>
+                                 
+
+                                      
+
+                                 </p>
+                            </div>
+                        </div>
+
+
                          <div class="row">
                              <div class="input-field col s12">
                                 <input id="txtEditMeetingNotes" type="text" placeholder="Some notes here..." style="margin-bottom: 0px" />
@@ -671,7 +743,14 @@
             $('#dlcommitteeType :nth-child(1)').prop('selected', true);
             $('#dlcommittee :nth-child(1)').prop('selected', true);
 
-            
+            $("#ckProjector").prop("checked", false);
+            $("#ckLaptop").prop("checked", false);
+            $("#ckScreen").prop("checked", false);
+            $("#ckFlipchart").prop("checked", false);
+            $("#ckEasel").prop("checked", false);
+            $("#ckSpider").prop("checked", false);
+            $("#ckMicrophone").prop("checked", false);
+            $("#ckTrash").prop("checked", false);
 
             $('#modal1').openModal();
 
@@ -680,6 +759,12 @@
 
         var meetingdate;
         $("#btnCreateNewMeeting").click(function () {
+
+            
+           
+
+          
+
             //get the set values
             var committeeId = $("#dlcommittee option:selected").attr("data-comid");
             var roomid = $("#roomdropdown option:selected").attr("data-roomid");
@@ -745,12 +830,47 @@
            
 
             meetingNotes = meetingNotes.replace(/'/g, "@");
+
+
+           
+            var equipmentArr = new Array();
+
+            if ($('#ckProjector').is(":checked")) {
+                equipmentArr.push('Projector');
+            }
+            if ($('#ckLaptop').is(":checked")) {
+                equipmentArr.push('Laptop');
+            }
+            if ($('#ckScreen').is(":checked")) {
+                equipmentArr.push('Screen');
+            }
+            if ($('#ckFlipchart').is(":checked")) {
+                equipmentArr.push('Flipchart');
+            }
+            if ($('#ckEasel').is(":checked")) {
+                equipmentArr.push('Easel');
+            }
+            if ($('#ckSpider').is(":checked")) {
+                equipmentArr.push('Spider Phone');
+            }
+            if ($('#ckMicrophone').is(":checked")) {
+                equipmentArr.push('Microphone');
+            }
+            if ($('#ckTrash').is(":checked")) {
+                equipmentArr.push('Trash Barrels');
+            }
+
+            var equipmentList = equipmentArr.join();
+
+       
+
+            
           
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine",
-                data: "{contactPhone:'"+ contactPhone +"',contactPerson:'"+ contactPerson +"',ComLongName:'"+ CommitteeLongName +"',ComTypeID:'" + committeeTypeID + "',CommitteeMeetingName:'" + $("#txtCommittee").val() + "',BookingFrequency:'" + BookingFrequency + "',MultipleRoomBooking:'" + MultipleRoomBooking + "',MultipleRoomBookingDate:'" + MultipleRoomBookingDate + "',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
+                data: "{EquipmentList:'"+ equipmentList  +"',contactPhone:'"+ contactPhone +"',contactPerson:'"+ contactPerson +"',ComLongName:'"+ CommitteeLongName +"',ComTypeID:'" + committeeTypeID + "',CommitteeMeetingName:'" + $("#txtCommittee").val() + "',BookingFrequency:'" + BookingFrequency + "',MultipleRoomBooking:'" + MultipleRoomBooking + "',MultipleRoomBookingDate:'" + MultipleRoomBookingDate + "',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -835,12 +955,41 @@
            var contactPerson = $("#txtContactPerson2").val();
            var contactPhone = $("#txtContactPhone2").val();
 
-            editedNotes = editedNotes.replace(/'/g, "@");
+           editedNotes = editedNotes.replace(/'/g, "@");
+
+           var equipmentArr = new Array();
+
+           if ($('#ckProjector2').is(":checked")) {
+               equipmentArr.push('Projector');
+           }
+           if ($('#ckLaptop2').is(":checked")) {
+               equipmentArr.push('Laptop');
+           }
+           if ($('#ckScreen2').is(":checked")) {
+               equipmentArr.push('Screen');
+           }
+           if ($('#ckFlipchart2').is(":checked")) {
+               equipmentArr.push('Flipchart');
+           }
+           if ($('#ckEasel2').is(":checked")) {
+               equipmentArr.push('Easel');
+           }
+           if ($('#ckSpider2').is(":checked")) {
+               equipmentArr.push('Spider Phone');
+           }
+           if ($('#ckMicrophone2').is(":checked")) {
+               equipmentArr.push('Microphone');
+           }
+           if ($('#ckTrash2').is(":checked")) {
+               equipmentArr.push('Trash Barrels');
+           }
+
+           var equipmentList = equipmentArr.join();
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine2",
-                data: "{ContactName:'"+ contactPerson +"',ContactPhone:'"+ contactPhone +"',HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
+                data: "{EquipmentList:'"+ equipmentList +"',ContactName:'"+ contactPerson +"',ContactPhone:'"+ contactPhone +"',HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -892,6 +1041,7 @@
             var contactPerson;
             var contactPhone;
             var isDoubleRoom;
+            var equipmentList;
 
             $("#btnEditMeeting").attr('data-meeting', meetingid);
             $("#btnDeleteMeeting").attr('data-meeting', meetingid);
@@ -922,6 +1072,7 @@
                         contactPerson = item.ContactName;
                         contactPhone = item.ContactPhone;
                         isDoubleRoom = item.isDoubleRoom;
+                        equipmentList = item.EquipmentList;
 
 
                     })
@@ -944,8 +1095,7 @@
                     } else {
                         $("#doubleRoomLabel").text("");
                     }
-                    
-                 
+   
 
                     var startDay = ("0" + startDate.getDate()).slice(-2);
                     var startMonth = ("0" + (startDate.getMonth() + 1)).slice(-2);
@@ -974,7 +1124,75 @@
                     }
                     $("#theEndTime2").val(endFormatted);
 
-                    // End Date PlayGround
+                    //Parse out equipment list into an array and check if values are contained to set the checkboxs
+
+                    // might as well clear all values up here first.. 
+
+                    $("#ckProjector2").prop("checked", false);
+                    $("#ckLaptop2").prop("checked", false);
+                    $("#ckScreen2").prop("checked", false);
+                    $("#ckFlipchart2").prop("checked", false);
+                    $("#ckEasel2").prop("checked", false);
+                    $("#ckSpider2").prop("checked", false);
+                    $("#ckMicrophone2").prop("checked", false);
+                    $("#ckTrash2").prop("checked", false);
+
+                    if (equipmentList.length > 1) {
+                        //... its not empty
+                         var temp = new Array();
+                         temp = equipmentList.split(",");
+                         
+                         $.each(temp, function (i, val) {
+                             
+
+                             switch(val) {
+                                 case "Projector":
+                                     $("#ckProjector2").prop("checked", true);
+                                     break;
+                                 case "Laptop":
+                                     $("#ckLaptop2").prop("checked", true);
+                                     break;
+                                 case "Screen":
+                                     $("#ckScreen2").prop("checked", true);
+                                     break;
+                                 case "Flipchart":
+                                     $("#ckFlipchart2").prop("checked", true);
+                                     break;
+                                 case "Easel":
+                                     $("#ckEasel2").prop("checked", true);
+                                     break;
+                                 case "Spider Phone":
+                                     $("#ckSpider2").prop("checked", true);
+                                     break;
+                                 case "Microphone":
+                                     $("#ckMicrophone2").prop("checked", true);
+                                     break;
+                                 case "Trash Barrels":
+                                     $("#ckTrash2").prop("checked", true);
+                                     break;
+                                 default:
+                                     console.log("this should never get hit");
+                             } // end switch
+
+
+                         });
+
+   
+             
+                      
+
+
+
+                    } else {
+                        // its empty.. clear all checkboxes
+                    }
+
+                       
+              
+
+
+
+
 
                 },
                 failure: function (msg) {
@@ -986,10 +1204,7 @@
             }) //end ajax
 
            
-            // load committee types
-            // load committee names
-            // load rooms
-           
+         
 
             $("#editmodal").openModal();
 
