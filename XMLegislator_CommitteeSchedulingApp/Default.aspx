@@ -113,25 +113,55 @@
                             </div>
 
                             <div class="input-field col s12">
-                                <label for="dlHearingType"><small>HearingType Type</small></label>
+                                <label for="dlHearingType"><small>Hearing Type</small></label>
                                 <br />
                                 <br />
                                 <select id="dlHearingType" class="hearingtype browser-default"></select>
                             </div>
 
-                            <div class="input-field col s6">
+                                <div hidden class="input-field col s12 addCommittee">
+
+                                    <input data-createnew="no" type="checkbox" id="ckAddNewCommittee" />
+                                    <label for="ckAddNewCommittee">Add New Committee</label>
+
+                                </div>
+                            
+
+                                <div id="committeeListField" class="input-field col s6">
+
                                 <label for="dlcommittee"><small>Committee</small></label>
                                 <br />
                                 <br />
                                 <select id="dlcommittee" class="comname browser-default"></select>
 
-                            </div>
+                                </div>
+
+                               
+                                <div hidden  class="input-field col s6 committeeTextField" style="margin-top:55px">
+
+                                <label for="txtCommittee">Committee Display Name</label>
+                            
+                                <input id="txtCommittee" type="text" placeholder="Enter new committee name" />
+
+                                </div>
+                              
+
+                           
                             <div class="input-field col s6">
                                 <label for="roomdropdown"><small>Building / Room</small></label>
                                 <br />
                                 <br />
                                 <select id="roomdropdown" class="roomname browser-default"></select>
                             </div>
+
+                            <div hidden class="input-field col s12 committeeTextField">
+
+                                <label for="txtCommittee">Committee Long Name</label>
+                            
+                                <input id="txtComLongName" type="text" placeholder="Committee Long Name" />
+
+                            </div>
+
                         </div>
                         <div class="row">
                             <div class="input-field col s12">
@@ -150,7 +180,7 @@
                                 <br />
                                 <input id="theEndTime" style="margin-top: 12px" type="time" />
                             </div>
-                                <div class="input-field col s6" style="margin-top:0px">
+                                <div class="input-field col s4" style="margin-top:0px">
                                 <label for="ddlDoMultipleBooking"><small>Create Multiple Booking</small></label>
                                <br /><br />
                                 <select id="ddlDoMultipleBooking" class="browser-default">
@@ -158,8 +188,17 @@
                                     <option value="yes">Yes</option>
                                 </select>
                                 </div>
+                              <div class="input-field col s4" style="margin-top:0px">
+                                <label for="ddlDoMultipleBooking"><small>Meeting Frequency</small></label>
+                               <br /><br />
+                                <select disabled id="ddlBookingFrequency" class="browser-default">
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Bi-Weekly">Bi-Weekly</option>
+                                    <option value="Monthly">Monthly</option>
+                                </select>
+                                </div>
 
-                             <div class="input-field col s6" style="margin-top:35px">
+                             <div class="input-field col s4" style="margin-top:35px">
                                 <input disabled="disabled" id="multipleBookingDate" type="date" placeholder="No time has been selected."  class="datepicker" style="margin-bottom: 0px" />
                                 <label for="multipleBookingDate">Multiple Booking End Date</label>
                             </div>
@@ -171,6 +210,19 @@
                                 <label for="txtMeetingNotes">Meeting Notes</label>
                             </div>
                         </div>
+
+                         <div class="row">
+                             <div class="input-field col s6">
+                                <input id="txtContactPerson" type="text" placeholder="Contact Person" style="margin-bottom: 0px" />
+                                <label for="txtContactPerson">Contact Person</label>
+                            </div>
+                                <div class="input-field col s6">
+                                <input id="txtContactPhone" type="text" placeholder="Contact Phone" style="margin-bottom: 0px" />
+                                <label for="txtContactPhone">Contact Phone</label>
+                            </div>
+                        </div>
+                        
+
                     </div>
                 </div>
                 <br />
@@ -188,7 +240,8 @@
                     <div class="col s12">
                         <div class="row" style="margin-bottom: 0px">
                             <div class="col s12">
-                                <h4><b>Edit Meeting</b></h4>
+                                <h4><b>Edit Meeting</b><br /><span id="doubleRoomLabel" style="font-size:smaller"></span></h4>
+
                             </div>
                         </div>
                         <div class="row">
@@ -243,6 +296,17 @@
                                 <label for="txtEditMeetingNotes">Meeting Notes</label>
                             </div>
                         </div>
+                           <div class="row">
+                             <div class="input-field col s6">
+                                <input id="txtContactPerson2" type="text" placeholder="Contact Person" style="margin-bottom: 0px" />
+                                <label for="txtContactPerson2">Contact Person</label>
+                            </div>
+                                 <div class="input-field col s6">
+                                <input id="txtContactPhone2" type="text" placeholder="Contact Phone" style="margin-bottom: 0px" />
+                                <label for="txtContactPhone2">Contact Phone</label>
+                            </div>
+                        </div>
+                      
                          <div class="row">
                             <div class="input-field col l12 s12" style="margin-top: 0px">
                                 <label><small>Agenda</small></label>
@@ -285,10 +349,46 @@
                 var optionSelected = $("#ddlDoMultipleBooking option:selected").attr("value");
                 if (optionSelected === 'yes') {
                     $("#multipleBookingDate").attr("disabled", false);
+                    $("#ddlBookingFrequency").attr("disabled",false);
                 } else {
                     $("#multipleBookingDate").attr("disabled", "disabled");
+                    $("#ddlBookingFrequency").attr("disabled","disabled");
                 }
             })
+
+            $("#dlcommitteeType").change(function(){
+                if ($("#dlcommitteeType option:selected").text() === 'Other') {
+                        $(".addCommittee").attr("hidden", false);
+                        $("#committeeListField").attr("hidden",false);
+                        $(".committeeTextField").attr("hidden", "hidden");
+                        
+                } else {
+                        $(".committeeTextField").attr("hidden","hidden");
+                        $("#committeeListField").attr("hidden", false);
+                        $(".addCommittee").attr("hidden", "hidden");
+                       
+                }
+            
+            })
+
+            $("#ckAddNewCommittee").change(function () {
+
+               
+
+                if ($(this).attr('data-createnew') === 'no') {
+                    $(".committeeTextField").attr("hidden", false);
+                    $("#committeeListField").attr("hidden", "hidden");
+                    $("#btnCreateNewMeeting").attr("data-isNewCommittee", "yes");
+                    $(this).attr('data-createnew', 'yes');
+                } else {
+                    $(".committeeTextField").attr("hidden", "hidden");
+                    $("#committeeListField").attr("hidden", false);
+                    $(this).attr('data-createnew', 'no');
+                    $("#btnCreateNewMeeting").attr("data-isNewCommittee", "no");
+                }
+            })
+
+
 
 
 
@@ -383,7 +483,7 @@
                 success: function (data) {
 
                     var result = data.d;
-                    $(".comname").empty();
+                    $(".comtypename").empty();
 
                     $.each(result, function (index, item) {
 
@@ -565,22 +665,17 @@
             $("#theEndTime").val(endFormatted);
 
             $("#roomdropdown option[val=" + resource + "]").prop("selected", true);
+            
+            
+            $('#dlHearingType :nth-child(1)').prop('selected', true);
+            $('#dlcommitteeType :nth-child(1)').prop('selected', true);
+            $('#dlcommittee :nth-child(1)').prop('selected', true);
+
+            
 
             $('#modal1').openModal();
 
-            // alert(start + " " + end + " " + resource);
-            // var modal = new DayPilot.Modal();
-            // modal.top = 60;
-            // modal.width = 300;
-            // modal.opacity = 70;
-            // modal.border = "10px solid #d0d0d0";
-            // modal.closed = function () {
-            //     if (this.result == "OK") {
-            //         dps1.commandCallBack('refresh');
-            //     }
-            //     dps1.clearSelection();
-            //  };
-            // modal.showUrl("New.aspx?start=" + start.toStringSortable() + "&end=" + end.toStringSortable() + "&r=" + resource);
+          
         }
 
         var meetingdate;
@@ -589,11 +684,36 @@
             var committeeId = $("#dlcommittee option:selected").attr("data-comid");
             var roomid = $("#roomdropdown option:selected").attr("data-roomid");
             var hearingTypeID = $("#dlHearingType option:selected").attr("val");
+            var committeeTypeID = $(".comtypename option:selected").attr("data-comtypeid");
 
-            if (typeof committeeId === "undefined") {
-                alert("A committee has not been selected.");
-                return;
+
+            var isNewCommittee = $("#btnCreateNewMeeting").attr("data-isNewCommittee");
+
+            if (isNewCommittee === 'yes') {
+
+                if ($.trim($("#txtCommittee").val()) === '') {
+                    alert("A committee has not been set.");
+                    return;
+                }
+
+                if ($.trim($("#txtComLongName").val()) === '') {
+                    alert("A committee long name has not been set.");
+                    return;
+                }
+
+               
+
+            } else {
+
+
+                if (typeof committeeId === "undefined") {
+                    alert("A committee has not been selected.");
+                    return;
+                }
+
             }
+
+          
             if (typeof hearingTypeID === "undefined") {
                 alert("A hearing type has not been selected.");
                 return;
@@ -616,13 +736,21 @@
             var MultipleRoomBooking = $("#ddlDoMultipleBooking option:selected").attr("value");
             var MultipleRoomBookingDate = $("#multipleBookingDate").val();
 
-          
+            var BookingFrequency = $("#ddlBookingFrequency option:selected").attr("value");
+            var CommitteeLongName = $("#txtComLongName").val();
+
+            var contactPerson = $("#txtContactPerson").val();
+            var contactPhone = $("#txtContactPhone").val();
+
+           
+
             meetingNotes = meetingNotes.replace(/'/g, "@");
+          
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine",
-                data: "{MultipleRoomBooking:'"+ MultipleRoomBooking +"',MultipleRoomBookingDate:'"+ MultipleRoomBookingDate +"',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
+                data: "{contactPhone:'"+ contactPhone +"',contactPerson:'"+ contactPerson +"',ComLongName:'"+ CommitteeLongName +"',ComTypeID:'" + committeeTypeID + "',CommitteeMeetingName:'" + $("#txtCommittee").val() + "',BookingFrequency:'" + BookingFrequency + "',MultipleRoomBooking:'" + MultipleRoomBooking + "',MultipleRoomBookingDate:'" + MultipleRoomBookingDate + "',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -704,12 +832,15 @@
             var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
             var editedNotes = $("#txtEditMeetingNotes").val();
 
+           var contactPerson = $("#txtContactPerson2").val();
+           var contactPhone = $("#txtContactPhone2").val();
+
             editedNotes = editedNotes.replace(/'/g, "@");
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine2",
-                data: "{HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
+                data: "{ContactName:'"+ contactPerson +"',ContactPhone:'"+ contactPhone +"',HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -758,6 +889,9 @@
             var endTime;
             var meetingnotes;
             var hearingTypeId;
+            var contactPerson;
+            var contactPhone;
+            var isDoubleRoom;
 
             $("#btnEditMeeting").attr('data-meeting', meetingid);
             $("#btnDeleteMeeting").attr('data-meeting', meetingid);
@@ -785,6 +919,9 @@
                         endTime = item.EndTime;
                         meetingnotes = item.MeetingNotes;
                         hearingTypeId = item.HearingTypeID;
+                        contactPerson = item.ContactName;
+                        contactPhone = item.ContactPhone;
+                        isDoubleRoom = item.isDoubleRoom;
 
 
                     })
@@ -799,6 +936,15 @@
                     var endDate = new Date(endTime);
 
                     $("#txtEditMeetingNotes").val(meetingnotes);
+                    $("#txtContactPerson2").val(contactPerson);
+                    $("#txtContactPhone2").val(contactPhone);
+
+                    if (isDoubleRoom) {
+                        $("#doubleRoomLabel").text("[ DOUBLE ROOM ]").css("color","red");
+                    } else {
+                        $("#doubleRoomLabel").text("");
+                    }
+                    
                  
 
                     var startDay = ("0" + startDate.getDate()).slice(-2);

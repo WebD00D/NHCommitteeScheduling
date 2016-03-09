@@ -17,7 +17,7 @@ Public Class _Default
 
     Private Sub LoadResources()
         DayPilotScheduler1.Resources.Clear()
-        Dim da As New SqlDataAdapter("SELECT [RoomID], [RoomName] FROM [room]", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim da As New SqlDataAdapter("SELECT [RoomID], [RoomName] FROM [room] WHERE Room1ID IS NULL AND Room2ID IS NULL", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable()
         da.Fill(dt)
 
