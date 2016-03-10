@@ -183,12 +183,13 @@ Public Class Engine
         Return ""
     End Function
 
-    <WebMethod()> _
+    <WebMethod(True)> _
     Public Function DateEngine(ByVal EquipmentList As String, ByVal contactPhone As String, ByVal contactPerson As String, ByVal ComLongName As String, ByVal ComTypeID As String, ByVal CommitteeMeetingName As String, ByVal BookingFrequency As String, ByVal MultipleRoomBooking As String, ByVal MultipleRoomBookingDate As String, HearingTypeID As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
         Dim MeetingDay As Date = NewStartDate.Date
+        Session("workingOnDate") = MeetingDay
 
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable
