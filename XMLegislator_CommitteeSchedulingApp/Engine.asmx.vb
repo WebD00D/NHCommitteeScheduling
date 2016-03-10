@@ -39,6 +39,7 @@ Public Class Engine
     Public Class HearingType
         Public HearingTypeID As Integer
         Public HearingTypeName As String
+        Public ChamberCode As String
     End Class
 
     Public Class MeetingDates
@@ -156,7 +157,7 @@ Public Class Engine
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT HearingTypeID, HearingType FROM  HearingType"
+            cmd.CommandText = "SELECT HearingTypeID, HearingType, ChamberCode FROM  HearingType ORDER BY ChamberCode"
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -170,6 +171,7 @@ Public Class Engine
                 Dim H As New HearingType
                 H.HearingTypeID = item("HearingTypeID")
                 H.HearingTypeName = item("HearingType")
+                H.ChamberCode = item("ChamberCode")
                 HearingList.Add(H)
             Next
             Return HearingList
@@ -960,11 +962,26 @@ Public Class Engine
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable
 
+ 
+        '   Dim commandtext As String = " SELECT cm.CommitteeMeetingID, a.AgendaSupportTitle , l.LegislationNbr , d.DocumentTypeCode " & _
+        '                              " FROM CommitteeMeeting cm " & _
+        '                             " INNER JOIN AgendaSupport a on cm.CommitteeMeetingID = a.CommitteeMeetingID " & _
+        '                             " INNER JOIN Legislation l on a.LegislationID = l.LegislationID " & _
+        '                           " INNER JOIN DocumentType d on l.DocumentTypeID = d.DocumentTypeID " & _
+        '                           " WHERE cm.CommitteeMeetingID = " + CStr(CommitteeMeetingID) + " AND l.LegislationID IN (" + BillList + ") "
+
+        Dim commandtext As String = " SELECT a.CommitteeMeetingID,l.LegislationNbr,d.DocumentTypeCode, a.AgendaSupportTitle " & _
+                                    " FROM AgendaSupport a " & _
+                                    " INNER JOIN JoinLegislationAgendaSupport jls on a.AgendaSupportID = jls.AgendaSupportID" & _
+                                    " INNER JOIN Legislation l on jls.LegislationID = l.LegislationID " & _
+                                    " INNER JOIN DocumentType d on l.DocumentTypeID = d.DocumentTypeID " & _
+                                    " WHERE a.CommitteeMeetingID =  " + CStr(CommitteeMeetingID)
+
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.Connection.Open()
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = " SELECT LegislationID FROM AgendaSupport WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            cmd.CommandText = commandtext
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -972,47 +989,22 @@ Public Class Engine
             cmd.Connection.Close()
         End Using
 
+
         If dt.Rows.Count > 0 Then
-            Dim list As New List(Of Integer)
-            For Each row As DataRow In dt.Rows()
-                list.Add(row("LegislationID"))
-            Next
-
-            Dim BillList As String = String.Join(",", list.ToArray())
-
-            dt.Clear()
-            dt.Columns.Clear()
-
-            Dim commandtext As String = " SELECT cm.CommitteeMeetingID, a.AgendaSupportTitle , l.LegislationNbr , d.DocumentTypeCode " & _
-                                        " FROM CommitteeMeeting cm " & _
-                                        " INNER JOIN AgendaSupport a on cm.CommitteeMeetingID = a.CommitteeMeetingID " & _
-                                        " INNER JOIN Legislation l on a.LegislationID = l.LegislationID " & _
-                                        " INNER JOIN DocumentType d on l.DocumentTypeID = d.DocumentTypeID " & _
-                                        " WHERE cm.CommitteeMeetingID = " + CStr(CommitteeMeetingID) + " AND l.LegislationID IN (" + BillList + ") "
-
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = commandtext
-                Using da As New SqlDataAdapter
-                    da.SelectCommand = cmd
-                    da.Fill(dt)
-                End Using
-                cmd.Connection.Close()
-            End Using
-
             Dim HTML As New StringBuilder
             HTML.Append("<ul>")
             For Each row As DataRow In dt.Rows()
-                HTML.Append("<li><b>" + row("AgendaSupportTitle") + " --> </b>" + row("DocumentTypeCode") + "" + row("LegislationNbr") + "</li>")
+                HTML.Append("<li><b>--> " + row("AgendaSupportTitle") + " </b> </li>")
             Next
             HTML.Append("</ul>")
 
             Return HTML.ToString()
         Else
-            Return " "
+            Return ""
         End If
+
+      
+      
 
     End Function
 
@@ -1069,8 +1061,6 @@ Public Class Engine
 
 
 
-
-        
 
         Return ""
     End Function

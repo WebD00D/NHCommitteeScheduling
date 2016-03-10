@@ -38,7 +38,7 @@
         <div class="nav-wrapper">
             <a href="#" class="brand-logo" style="margin-left: 50px"><b><small>NH Committee Scheduler</small></b></a>
             <ul id="nav-mobile" class="right" style="margin-right:25px">
-               
+               <li style="padding-right:10px"><b>Pick Date --> </b></li>
                 <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date"></asp:TextBox></span></li>
                 <li><span style="padding-left:15px"><asp:LinkButton ID="lnkGoToDate" runat="server" CssClass="btn"><b>GO TO DATE</b></asp:LinkButton></span></li>
                 <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetDate" runat="server" CssClass="btn grey lighten-4 black-text">RESET DATE</asp:LinkButton></span></li>
@@ -165,8 +165,9 @@
                         </div>
                         <div class="row">
                             <div class="input-field col s12">
-                                <input id="thedate" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom: 0px" />
-                                <label for="thedate">Meeting Day</label>
+                                <label for="thedate" style="font-size:smaller">Meeting Day</label><br />
+                                <input id="thedate" type="date"  style="margin-bottom: 0px" />
+                                
                             </div>
                         </div>
                         <div class="row">
@@ -198,9 +199,10 @@
                                 </select>
                                 </div>
 
-                             <div class="input-field col s4" style="margin-top:35px">
-                                <input disabled="disabled" id="multipleBookingDate" type="date" placeholder="No time has been selected."  class="datepicker" style="margin-bottom: 0px" />
-                                <label for="multipleBookingDate">Multiple Booking End Date</label>
+                             <div class="input-field col s4" style="margin-top:1px">
+                                 <label for="multipleBookingDate" style="font-size:smaller">Multiple Booking End Date</label><br /><br />
+                                <input disabled="disabled" id="multipleBookingDate" type="date" style="margin-bottom: 0px" />
+                                
                             </div>
                         </div>
 
@@ -288,7 +290,7 @@
 
                             </div>
                                 <div class="input-field col s12">
-                                <label for="dlHearingType2"><small>HearingType Type</small></label>
+                                <label for="dlHearingType2"><small>Hearing Type</small></label>
                                 <br />
                                 <br />
                                 <select id="dlHearingType2" class="hearingtype browser-default"></select>
@@ -309,8 +311,10 @@
                         </div>
                         <div class="row">
                             <div class="input-field col s12">
-                                <input id="thedate2" type="date" placeholder="No time has been selected." class="datepicker" style="margin-bottom: 0px" />
-                                <label for="thedate">Meeting Day</label>
+                                 <label for="thedate" style="font-size:smaller">Meeting Day</label>
+                                 <br />
+                                <input id="thedate2" type="date"   style="margin-bottom: 0px" />
+                               
                             </div>
                         </div>
                         <div class="row" style="margin-bottom:0px">
@@ -489,7 +493,7 @@
 
                     $.each(result, function (index, item) {
 
-                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + ">" + item.HearingTypeName + "</option>"
+                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + "><b>("+ item.ChamberCode +") </b>" + item.HearingTypeName + "</option>"
                         $(options).appendTo(".hearingtype");
 
                     })
@@ -522,7 +526,7 @@
 
                     $.each(result, function (index, item) {
 
-                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + ">" + item.HearingTypeName + "</option>"
+                        options = "<option val=" + item.HearingTypeID + "  data-hearingtypeid=" + item.HearingTypeID + "><b>(" + item.ChamberCode + ") </b>" + item.HearingTypeName + "</option>"
                         $(options).appendTo(".hearingtype");
 
                     })
@@ -942,14 +946,21 @@
                 return;
             }
 
+
+
+         
+
+
             meetingdate2 = new Date($("#thedate2").val());
             var startTime = $("#theStartTime2").val();
             var endTime = $("#theEndTime2").val();
-            var day = meetingdate2.getDate() + 1;
+            var day = meetingdate2.getDate() + 1 ;
             var month = meetingdate2.getMonth() + 1;
             var year = meetingdate2.getFullYear();
-            var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
-            var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+            var formattedStartDate = year + "/" + month + "/" + day + " " + startTime
+            var formattedEndDate = year + "/" + month + "/" + day + " " + endTime
+
+         
             var editedNotes = $("#txtEditMeetingNotes").val();
 
            var contactPerson = $("#txtContactPerson2").val();
@@ -1211,6 +1222,9 @@
         }
 
         function getBillList(meetingid) {
+
+            $("#agendalist").empty();
+
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/GetBillList",
