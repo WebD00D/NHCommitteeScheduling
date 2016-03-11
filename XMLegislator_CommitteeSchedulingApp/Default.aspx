@@ -39,7 +39,7 @@
             <a href="#" class="brand-logo" style="margin-left: 50px"><b><small>NH Committee Scheduler</small></b></a>
             <ul id="nav-mobile" class="right" style="margin-right:25px">
                <li style="padding-right:10px"><b>Pick Date --> </b></li>
-                <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date"></asp:TextBox></span></li>
+                <li><span><asp:TextBox runat="server" ID="dpJumpToDate" TextMode="Date" CssClass="browser-default" style="border:1px solid #eeeeee"></asp:TextBox></span></li>
                 <li><span style="padding-left:15px"><asp:LinkButton ID="lnkGoToDate" runat="server" CssClass="btn"><b>GO TO DATE</b></asp:LinkButton></span></li>
                 <li><span style="padding-left:15px"><asp:LinkButton ID="lnkResetDate" runat="server" CssClass="btn grey lighten-4 black-text">RESET DATE</asp:LinkButton></span></li>
                 <li><span style="padding-left:15px"><asp:LinkButton ID="lnkShowSaturdaySunday" runat="server" CssClass="btn">VIEW SAT/SUN</asp:LinkButton></span></li>
@@ -102,6 +102,14 @@
                             <div class="col s12">
                                 <h4><b>Create New Meeting</b></h4>
                             </div>
+                        </div>
+                               <div class="row" style="margin-bottom:0px !important">
+                            <div class="col s12">
+                                   <input type="checkbox" id="ckIsConfidential" />
+                              <label for="ckIsConfidential" style="padding-right:10px">Is Confidential</label>
+
+                            </div>
+                           
                         </div>
                         <div class="row">
                              <div class="input-field col s12">
@@ -258,6 +266,8 @@
                                 <label for="txtContactPhone">Contact Phone</label>
                             </div>
                         </div>
+
+                    
                         
 
                     </div>
@@ -280,6 +290,14 @@
                                 <h4><b>Edit Meeting</b><br /><span id="doubleRoomLabel" style="font-size:smaller"></span></h4>
 
                             </div>
+                        </div>
+                             <div class="row" style="margin-bottom:0px !important">
+                            <div class="col s12">
+                                   <input type="checkbox" id="ckIsConfidential2" />
+                              <label for="ckIsConfidential2" style="padding-right:10px">Is Confidential</label>
+
+                            </div>
+                           
                         </div>
                         <div class="row">
                                <div class="input-field col s12">
@@ -392,6 +410,8 @@
                             </div>
                           
                         </div>
+
+                      
                     </div>
                 </div>
                 <br />
@@ -765,10 +785,7 @@
         $("#btnCreateNewMeeting").click(function () {
 
             
-           
-
-          
-
+  
             //get the set values
             var committeeId = $("#dlcommittee option:selected").attr("data-comid");
             var roomid = $("#roomdropdown option:selected").attr("data-roomid");
@@ -831,12 +848,13 @@
             var contactPerson = $("#txtContactPerson").val();
             var contactPhone = $("#txtContactPhone").val();
 
-           
+            var typedCommittee = $("#txtCommittee").val()
 
             meetingNotes = meetingNotes.replace(/'/g, "@");
+            CommitteeLongName = CommitteeLongName.replace(/'/g, "@");
+            typedCommittee = typedCommittee.replace(/'/g, "@");
 
-
-           
+   
             var equipmentArr = new Array();
 
             if ($('#ckProjector').is(":checked")) {
@@ -866,15 +884,18 @@
 
             var equipmentList = equipmentArr.join();
 
-       
-
-            
-          
+            var isConfidential;
+            if ($("#ckIsConfidential").is(":checked")){
+                isConfidential = true;
+            } else {
+                isConfidential = false;
+            }
+      
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine",
-                data: "{EquipmentList:'"+ equipmentList  +"',contactPhone:'"+ contactPhone +"',contactPerson:'"+ contactPerson +"',ComLongName:'"+ CommitteeLongName +"',ComTypeID:'" + committeeTypeID + "',CommitteeMeetingName:'" + $("#txtCommittee").val() + "',BookingFrequency:'" + BookingFrequency + "',MultipleRoomBooking:'" + MultipleRoomBooking + "',MultipleRoomBookingDate:'" + MultipleRoomBookingDate + "',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
+                data: "{IsConfidential:"+ isConfidential +",EquipmentList:'" + equipmentList + "',contactPhone:'" + contactPhone + "',contactPerson:'" + contactPerson + "',ComLongName:'" + CommitteeLongName + "',ComTypeID:'" + committeeTypeID + "',CommitteeMeetingName:'" + typedCommittee + "',BookingFrequency:'" + BookingFrequency + "',MultipleRoomBooking:'" + MultipleRoomBooking + "',MultipleRoomBookingDate:'" + MultipleRoomBookingDate + "',HearingTypeID:'" + hearingTypeID + "',FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + meetingNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -994,13 +1015,20 @@
            if ($('#ckTrash2').is(":checked")) {
                equipmentArr.push('Trash Barrels');
            }
+           var isConfidential;
+           if ($("#ckIsConfidential2").is(":checked")) {
+               isConfidential = true;
+           } else {
+               isConfidential = false;
+           }
+
 
            var equipmentList = equipmentArr.join();
 
             $.ajax({
                 type: "POST",
                 url: "Engine.asmx/DateEngine2",
-                data: "{EquipmentList:'"+ equipmentList +"',ContactName:'"+ contactPerson +"',ContactPhone:'"+ contactPhone +"',HearingTypeID:'"+ hearingTypeID  +"',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
+                data: "{IsConfidential:"+ isConfidential +",EquipmentList:'" + equipmentList + "',ContactName:'" + contactPerson + "',ContactPhone:'" + contactPhone + "',HearingTypeID:'" + hearingTypeID + "',meetingId:'" + meetingid + "', FormattedStartDate:'" + formattedStartDate + "',FormattedEndDate:'" + formattedEndDate + "',CommitteeID:'" + committeeId + "',RoomID:'" + roomid + "',MeetingNotes:'" + editedNotes + "'}",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
@@ -1053,6 +1081,7 @@
             var contactPhone;
             var isDoubleRoom;
             var equipmentList;
+            var isConfidential;
 
             $("#btnEditMeeting").attr('data-meeting', meetingid);
             $("#btnDeleteMeeting").attr('data-meeting', meetingid);
@@ -1084,9 +1113,12 @@
                         contactPhone = item.ContactPhone;
                         isDoubleRoom = item.isDoubleRoom;
                         equipmentList = item.EquipmentList;
+                        isConfidential = item.IsConfidential;
 
 
                     })
+
+                  
 
                     console.log('committee type id = ' + committeeTypeId + ' committee id = ' + committeeId);
                     $("#dlcommitteeType2 option[val=" + committeeTypeId + "]").prop("selected", true);
@@ -1147,6 +1179,14 @@
                     $("#ckSpider2").prop("checked", false);
                     $("#ckMicrophone2").prop("checked", false);
                     $("#ckTrash2").prop("checked", false);
+
+
+                    $("#ckIsConfidential2").prop("checked", false);
+
+                    if (isConfidential) {
+                        $("#ckIsConfidential2").prop("checked", true);
+                    }
+
 
                     if (equipmentList.length > 1) {
                         //... its not empty

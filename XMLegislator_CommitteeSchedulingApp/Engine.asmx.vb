@@ -29,6 +29,7 @@ Public Class Engine
         Public ContactPhone As String
         Public isDoubleRoom As Boolean
         Public EquipmentList As String
+        Public IsConfidential As Boolean
     End Class
 
     Public Class Room
@@ -184,7 +185,7 @@ Public Class Engine
     End Function
 
     <WebMethod(True)> _
-    Public Function DateEngine(ByVal EquipmentList As String, ByVal contactPhone As String, ByVal contactPerson As String, ByVal ComLongName As String, ByVal ComTypeID As String, ByVal CommitteeMeetingName As String, ByVal BookingFrequency As String, ByVal MultipleRoomBooking As String, ByVal MultipleRoomBookingDate As String, HearingTypeID As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
+    Public Function DateEngine(ByVal IsConfidential As Boolean, ByVal EquipmentList As String, ByVal contactPhone As String, ByVal contactPerson As String, ByVal ComLongName As String, ByVal ComTypeID As String, ByVal CommitteeMeetingName As String, ByVal BookingFrequency As String, ByVal MultipleRoomBooking As String, ByVal MultipleRoomBookingDate As String, HearingTypeID As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -194,9 +195,10 @@ Public Class Engine
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable
 
-        MeetingNotes = MeetingNotes.Replace("@", "'")
 
-
+        MeetingNotes = MeetingNotes.Replace("@", "''")
+        ComLongName = ComLongName.Replace("@", "''")
+        CommitteeMeetingName = CommitteeMeetingName.Replace("@", "''")
 
 
         ' .. check if the room being booked is a double room. 
@@ -392,6 +394,7 @@ Public Class Engine
                     cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
                     cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
                     cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                    cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
                     cmd.ExecuteNonQuery()
                     cmd.Connection.Close()
                 End Using
@@ -414,6 +417,7 @@ Public Class Engine
                     cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
                     cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
                     cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                    cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
                     cmd.ExecuteNonQuery()
                     cmd.Connection.Close()
                 End Using
@@ -428,8 +432,9 @@ Public Class Engine
         Return "Hello World"
     End Function
 
+
     <WebMethod()> _
-    Public Function DateEngine2(ByVal EquipmentList As String, ByVal ContactName As String, ByVal ContactPhone As String, ByVal HearingTypeID As Integer, ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
+    Public Function DateEngine2(ByVal IsConfidential As Boolean, ByVal EquipmentList As String, ByVal ContactName As String, ByVal ContactPhone As String, ByVal HearingTypeID As Integer, ByVal meetingId As Integer, ByVal FormattedStartDate As String, ByVal FormattedEndDate As String, CommitteeID As String, ByVal RoomID As String, ByVal MeetingNotes As String)
 
         Dim NewStartDate As Date = CDate(FormattedStartDate)
         Dim NewEndDate As Date = CDate(FormattedEndDate)
@@ -445,9 +450,9 @@ Public Class Engine
 
         ' Possible Scenarios
 
-        ' 1) Meeting is being changed from a single room meeting to a double room meeting
+        ' 1) X Meeting is being changed from a single room meeting to a double room meeting
 
-        ' 2) Meeting is being changed from a double room meeting to a single room meeting 
+        ' 2) X Meeting is being changed from a double room meeting to a single room meeting 
 
         ' 3) Meeting is in a double room and being changed to a new double room. 
 
@@ -478,8 +483,6 @@ Public Class Engine
         End Using
 
         Dim TheYearID As Integer = dt2.Rows(0).Item(0)
-
-
 
 
         Dim meetingDT As New DataTable
@@ -523,25 +526,114 @@ Public Class Engine
         End Using
 
 
+        Dim newRoomIsSingle As Boolean
+        If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
+            newRoomIsSingle = True
+        Else
+            newRoomIsSingle = False
+        End If
 
-        Dim newRoomIsSingle As Boolean = Nothing
+        '/////////////////////////////  NEW LOGIC   /////////////////////////////////
+        Dim CurrentMeetingRoomID As Integer = meetingDT.Rows(0).Item("RoomID")
+        Dim newRoom1ID As Integer = Nothing
+        If Not IsDBNull(roomDT.Rows(0).Item("Room1ID")) Then newRoom1ID = roomDT.Rows(0).Item("Room1ID")
+        Dim newRoom2ID As Integer = Nothing
+        If Not IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then newRoom2ID = roomDT.Rows(0).Item("Room2ID")
+
+        ' Meeting is being changed from a single room meeting to a double room meeting
+
+        If currentMeetingIsInSingle = True And newRoomIsSingle = False Then
+            ' Delete Single Room Meeting
+            Using cmd As New SqlCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.Text
+                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & meetingId
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
+
+            ' Create new double room meeting
+            Using cmd As SqlCommand = con.CreateCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.StoredProcedure
+                cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
+                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
+                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
+                'cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+                cmd.Parameters.AddWithValue("@room1ID", CInt(roomDT.Rows(0).Item("Room1ID")))
+                cmd.Parameters.AddWithValue("@room2ID", CInt(roomDT.Rows(0).Item("Room2ID")))
+                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
+                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
+                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+                cmd.Parameters.AddWithValue("@yearid", TheYearID)
+                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
+                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
+
+            Return "Hello World"
+
+        End If
+
+        ' Meeting is being changed from a double room meeting to a single room meeting 
+        If currentMeetingIsInSingle = False And newRoomIsSingle = True AndAlso CurrentMeetingRoomID <> RoomID AndAlso CurrentMeetingRoomID <> newRoom1ID AndAlso CurrentMeetingRoomID <> newRoom2ID Then
 
 
-        ' new logic for checking if the room is single goes here...
+
+            'Delete double.. 
+            ' .. its a double, so we need to delete multiple room blocks
+            Dim MeetingDate As String = meetingDT.Rows(0).Item("MeetingDateTime")
+            Dim StartTime As String = meetingDT.Rows(0).Item("StartTime")
+            Dim EndTime As String = meetingDT.Rows(0).Item("EndTime")
+            Dim Committee As Integer = meetingDT.Rows(0).Item("CommitteeID")
+
+            Using cmd As New SqlCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.Text
+                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE MeetingDateTime = '" + MeetingDate + "' AND StartTime = '" + StartTime + "' AND EndTime = '" + EndTime + "' AND CommitteeID = " & Committee
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
+
+            'Create Single
+            Using cmd As SqlCommand = con.CreateCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.StoredProcedure
+                cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
+                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
+                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
+                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
+                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
+                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+                cmd.Parameters.AddWithValue("@yearid", TheYearID)
+                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
+                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
+
+            Return "Hello World"
+        End If
 
 
 
 
+        ' //////////////////////////////  END NEW LOGIC     ///////////////////////////////////////////////////
 
+        
 
-        ' new logic for checking if the room is single ends here... 
-
-
-
-
-
-
-        ' convoluted logic that needs to be replaced starts here...
 
         If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
             If currentMeetingIsInSingle = False Then
@@ -577,97 +669,10 @@ Public Class Engine
         ' convoluted logic that needs to be replaced ends here...
 
 
+     
 
 
-        Dim CurrentMeetingRoomID As Integer = meetingDT.Rows(0).Item("RoomID")
-        Dim newRoom1ID As Integer = Nothing
-        If Not IsDBNull(roomDT.Rows(0).Item("Room1ID")) Then newRoom1ID = roomDT.Rows(0).Item("Room1ID")
-        Dim newRoom2ID As Integer = Nothing
-        If Not IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then newRoom2ID = roomDT.Rows(0).Item("Room2ID")
 
-        ' SCENARIO 1: Meeting is being changed from a single room meeting to a double room meeting
-        If currentMeetingIsInSingle = True AndAlso newRoomIsSingle = False Then
-
-            ' Delete Single Room Meeting
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & meetingId
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            ' Create new double room meeting
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@room1ID", CInt(roomDT.Rows(0).Item("Room1ID")))
-                cmd.Parameters.AddWithValue("@room2ID", CInt(roomDT.Rows(0).Item("Room2ID")))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-
-        End If
-
-        ' SCENARIO 2: Meeting is being changed from a double room meeting to a single room meeting 
-        If currentMeetingIsInSingle = False AndAlso newRoomIsSingle = True Then
-            'Delete double.. 
-            ' .. its a double, so we need to delete multiple room blocks
-            Dim MeetingDate As String = meetingDT.Rows(0).Item("MeetingDateTime")
-            Dim StartTime As String = meetingDT.Rows(0).Item("StartTime")
-            Dim EndTime As String = meetingDT.Rows(0).Item("EndTime")
-            Dim Committee As Integer = meetingDT.Rows(0).Item("CommitteeID")
-
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE MeetingDateTime = '" + MeetingDate + "' AND StartTime = '" + StartTime + "' AND EndTime = '" + EndTime + "' AND CommitteeID = " & Committee
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            'Create Single
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-
-
-        End If
 
         ' SCENARIO 3: Meeting is in a double room and being changed to a new double room. 
         If currentMeetingIsInSingle = False AndAlso newRoomIsSingle = False AndAlso CurrentMeetingRoomID <> RoomID AndAlso CurrentMeetingRoomID <> newRoom1ID AndAlso CurrentMeetingRoomID <> newRoom2ID Then
@@ -695,7 +700,7 @@ Public Class Engine
                 cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
                 cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
                 cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+                '      cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
                 cmd.Parameters.AddWithValue("@room1ID", CInt(roomDT.Rows(0).Item("Room1ID")))
                 cmd.Parameters.AddWithValue("@room2ID", CInt(roomDT.Rows(0).Item("Room2ID")))
                 cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
@@ -706,6 +711,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
                 cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -734,6 +740,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@contactPerson", ContactName)
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
                 cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -763,7 +770,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
 
                 cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-
+                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -883,7 +890,7 @@ Public Class Engine
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,ISNULL(cm.MeetingNotes,'') MeetingNotes,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime,cm.HearingTypeID,cm.ContactPerson,cm.ContactPhone,cm.isDoubleRoom,cm.EquipmentList FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
+            cmd.CommandText = " SELECT CommitteeMeetingID,cm.CommitteeID,c.CommitteeTypeID,ISNULL(cm.MeetingNotes,'') MeetingNotes,cm.MeetingDateTime,cm.RoomID,cm.StartTime,cm.EndTime,cm.HearingTypeID,cm.ContactPerson,cm.ContactPhone,cm.isDoubleRoom,cm.EquipmentList,cm.IsConfidential FROM CommitteeMeeting cm INNER JOIN Committee c on c.CommitteeID = cm.CommitteeID WHERE CommitteeMeetingID = " & CommitteeMeetingID
             Using da As New SqlDataAdapter
                 da.SelectCommand = cmd
                 da.Fill(dt)
@@ -904,6 +911,12 @@ Public Class Engine
                 C.EndTime = item("EndTime")
                 C.MeetingNotes = item("MeetingNotes")
                 C.HearingTypeID = item("HearingTypeID")
+
+                If IsDBNull(item("IsConfidential")) Then
+                    C.IsConfidential = False
+                Else
+                    C.IsConfidential = CBool(item("IsConfidential"))
+                End If
 
                 If IsDBNull(item("EquipmentList")) Then
                     C.EquipmentList = " "
@@ -976,7 +989,8 @@ Public Class Engine
                                     " INNER JOIN JoinLegislationAgendaSupport jls on a.AgendaSupportID = jls.AgendaSupportID" & _
                                     " INNER JOIN Legislation l on jls.LegislationID = l.LegislationID " & _
                                     " INNER JOIN DocumentType d on l.DocumentTypeID = d.DocumentTypeID " & _
-                                    " WHERE a.CommitteeMeetingID =  " + CStr(CommitteeMeetingID)
+                                    " INNER JOIN CommitteeMeeting cm on a.CommitteeMeetingID = cm.CommitteeMeetingID" & _
+                                    " WHERE a.CommitteeMeetingID =  " + CStr(CommitteeMeetingID) + " AND Released = 1"
 
         Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
@@ -1035,10 +1049,20 @@ Public Class Engine
                 cmd.Connection = con
                 cmd.Connection.Open()
                 cmd.CommandType = CommandType.Text
+                cmd.CommandText = "DELETE FROM JoinLegislationAgendaSupport WHERE AgendaSupportID IN (SELECT AgendaSupportId FROM AgendaSupport WHERE CommitteeMeetingId = " & MeetingID & ")"
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
+            Using cmd As New SqlCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.Text
                 cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & MeetingID
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
+
+
 
         Else
 
@@ -1047,6 +1071,15 @@ Public Class Engine
             Dim StartTime As String = dt.Rows(0).Item("StartTime")
             Dim EndTime As String = dt.Rows(0).Item("EndTime")
             Dim CommitteeID As Integer = dt.Rows(0).Item("CommitteeID")
+
+            Using cmd As New SqlCommand
+                cmd.Connection = con
+                cmd.Connection.Open()
+                cmd.CommandType = CommandType.Text
+                cmd.CommandText = "DELETE FROM JoinLegislationAgendaSupport WHERE AgendaSupportID IN (SELECT AgendaSupportId FROM AgendaSupport WHERE CommitteeMeetingId = " & MeetingID & ")"
+                cmd.ExecuteNonQuery()
+                cmd.Connection.Close()
+            End Using
 
             Using cmd As New SqlCommand
                 cmd.Connection = con
