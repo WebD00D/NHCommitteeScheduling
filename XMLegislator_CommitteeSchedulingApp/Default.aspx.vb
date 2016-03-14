@@ -6,6 +6,7 @@ Public Class _Default
         If Not IsPostBack Then
             LoadResources()
 
+
             If Not IsNothing(Session("workingOnDate")) Then
                 Dim TheDate As Date = CDate(Session("workingOnDate"))
                 DayPilotScheduler1.StartDate = New Date(TheDate.Year, TheDate.Month, TheDate.Day)
@@ -63,12 +64,22 @@ Public Class _Default
 
     Private Function DbGetEvents(ByVal start As Date, ByVal days As Integer) As DataTable
 
-        Dim da As New SqlDataAdapter("SELECT [CommitteeMeetingID], [StartTime], [EndTime], cm.RoomID, c.CommitteeName FROM [CommitteeMeeting] cm INNER JOIN Committee c on cm.CommitteeID = c.CommitteeID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end)) AND Released = 1", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim da As New SqlDataAdapter("SELECT CommitteeMeetingID,StartTime,EndTime, cm.RoomID,r.RoomNbr,c.CommitteeName FROM CommitteeMeeting cm INNER JOIN Committee c on cm.CommitteeID = c.CommitteeID INNER JOIN Room r on cm.RoomID = r.RoomID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end)) AND Released = 1", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         da.SelectCommand.Parameters.AddWithValue("start", start)
         da.SelectCommand.Parameters.AddWithValue("end", start.AddDays(days))
+
         Dim dt As New DataTable()
         da.Fill(dt)
+
+
+        ' We need to fill a temp table, and check for double room meetings by parsing the room number. If row contains
+        ' a double meeting then take get the individual rooms from that and add them as two "fake" meetings to the scheduler.
+
+
+
         Return dt
+
+
 
     End Function
 

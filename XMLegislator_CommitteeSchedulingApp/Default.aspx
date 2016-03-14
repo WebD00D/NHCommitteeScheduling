@@ -829,15 +829,36 @@
                 return;
             }
 
-            meetingdate = new Date($("#thedate").val());
+
+
+
+
+            var datevalue = $("#thedate").val();
+            var dateformatted = new Date(datevalue);
+            
+            meetingdate = $("#thedate").val();
             var startTime = $("#theStartTime").val();
             var endTime = $("#theEndTime").val();
             var meetingNotes = $("#txtMeetingNotes").val();
-            var day = meetingdate.getDate() + 1;
-            var month = meetingdate.getMonth() + 1;
-            var year = meetingdate.getFullYear();
-            var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
-            var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+
+            
+
+            //var day = meetingdate.getDate() + 1;
+            //var month = meetingdate.getMonth() + 1;
+            //var year = meetingdate.getFullYear();
+
+            //var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
+            //var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+
+
+            var formattedStartDate = meetingdate + " " + startTime
+            var formattedEndDate = meetingdate + " " + endTime
+
+        
+            alert(formattedStartDate);
+            alert(formattedEndDate);
+
+   
 
             var MultipleRoomBooking = $("#ddlDoMultipleBooking option:selected").attr("value");
             var MultipleRoomBookingDate = $("#multipleBookingDate").val();
