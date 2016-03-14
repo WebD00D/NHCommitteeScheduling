@@ -63,7 +63,7 @@ Public Class _Default
 
     Private Function DbGetEvents(ByVal start As Date, ByVal days As Integer) As DataTable
 
-        Dim da As New SqlDataAdapter("SELECT [CommitteeMeetingID], [StartTime], [EndTime], cm.RoomID, c.CommitteeName FROM [CommitteeMeeting] cm INNER JOIN Committee c on cm.CommitteeID = c.CommitteeID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end))", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim da As New SqlDataAdapter("SELECT [CommitteeMeetingID], [StartTime], [EndTime], cm.RoomID, c.CommitteeName FROM [CommitteeMeeting] cm INNER JOIN Committee c on cm.CommitteeID = c.CommitteeID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end)) AND Released = 1", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         da.SelectCommand.Parameters.AddWithValue("start", start)
         da.SelectCommand.Parameters.AddWithValue("end", start.AddDays(days))
         Dim dt As New DataTable()
