@@ -167,7 +167,7 @@
                                 <label for="txtCommittee">Committee Long Name</label>
                             
                                 <input id="txtComLongName" type="text" placeholder="Committee Long Name" />
-
+                                <label id="lblcheckCommittee" style="color:red"></label>
                             </div>
 
                         </div>
@@ -498,6 +498,46 @@
         loadCommitteeType();
         loadrooms();
         loadHearingType();
+
+        $("#txtCommittee").keyup(function () {
+            var key = event.keyCode || event.charCode;
+            var SearchText = $("#txtCommittee").val();
+
+            if ($("#txtCommittee").val().length > 2) {
+
+
+                $.ajax({
+                    type: "POST",
+                    url: "Engine.asmx/checkCommitteeName",
+                    data: "{enteredName:'"+ $("#txtCommittee").val() +"'}",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+
+                        var result = data.d;
+                        if (result === "empty") {
+                            //good to use
+                            $("#lblcheckCommittee").text("No Match Found").css("color", "green");
+
+                        } else {
+                            // it already exists. Show message.
+                            $("#lblcheckCommittee").text("Matches Found").css("color","red");
+                            
+                        }
+
+                    },
+                    failure: function (msg) {
+                        console.log(msg);
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                })
+
+
+            }
+
+       })
 
         function loadHearingType() {
             $.ajax({
@@ -855,11 +895,8 @@
             var formattedEndDate = meetingdate + " " + endTime
 
         
-            alert(formattedStartDate);
-            alert(formattedEndDate);
-
-   
-
+            
+  
             var MultipleRoomBooking = $("#ddlDoMultipleBooking option:selected").attr("value");
             var MultipleRoomBookingDate = $("#multipleBookingDate").val();
 
@@ -993,14 +1030,36 @@
          
 
 
-            meetingdate2 = new Date($("#thedate2").val());
+            //meetingdate2 = new Date($("#thedate2").val());
+            //var startTime = $("#theStartTime2").val();
+            //var endTime = $("#theEndTime2").val();
+            //var day = meetingdate2.getDate() + 1 ;
+            //var month = meetingdate2.getMonth() + 1;
+            //var year = meetingdate2.getFullYear();
+            //var formattedStartDate = year + "/" + month + "/" + day + " " + startTime
+            //var formattedEndDate = year + "/" + month + "/" + day + " " + endTime
+
+
+
+            var datevalue = $("#thedate2").val();
+            var dateformatted = new Date(datevalue);
+
+            meetingdate = $("#thedate2").val();
             var startTime = $("#theStartTime2").val();
             var endTime = $("#theEndTime2").val();
-            var day = meetingdate2.getDate() + 1 ;
-            var month = meetingdate2.getMonth() + 1;
-            var year = meetingdate2.getFullYear();
-            var formattedStartDate = year + "/" + month + "/" + day + " " + startTime
-            var formattedEndDate = year + "/" + month + "/" + day + " " + endTime
+           
+
+
+            //var day = meetingdate.getDate() + 1;
+            //var month = meetingdate.getMonth() + 1;
+            //var year = meetingdate.getFullYear();
+
+            //var formattedStartDate = year + "-" + month + "-" + day + " " + startTime
+            //var formattedEndDate = year + "-" + month + "-" + day + " " + endTime
+
+
+            var formattedStartDate = meetingdate + " " + startTime
+            var formattedEndDate = meetingdate + " " + endTime
 
          
             var editedNotes = $("#txtEditMeetingNotes").val();

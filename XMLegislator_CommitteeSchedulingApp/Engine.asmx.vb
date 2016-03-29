@@ -49,6 +49,29 @@ Public Class Engine
         Public FormattedEndDate As String
     End Class
 
+    <WebMethod()> _
+    Public Function checkCommitteeName(ByVal enteredName As String)
+
+        Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        Dim dt As New DataTable
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "SELECT CommitteeName, LongName FROM Committee WHERE CommitteeName LIKE '%" & enteredName & "%' OR LongName LIKE '%" & enteredName & "%'"
+            Using da As New SqlDataAdapter
+                da.SelectCommand = cmd
+                da.Fill(dt)
+            End Using
+        End Using
+
+        If dt.Rows.Count = 0 Then
+            Return "empty"
+        Else
+            Return "exists"
+        End If
+
+
+    End Function
 
     <WebMethod()> _
     Public Function LoadCommitteeType()
@@ -180,7 +203,6 @@ Public Class Engine
             Return "none"
         End If
       
-
         Return ""
     End Function
 
@@ -299,6 +321,7 @@ Public Class Engine
 
 
 
+
                 FirstMeeting = FirstMeeting.AddDays(1)
 
                 'If BookingFrequency = "Weekly" Then
@@ -400,36 +423,15 @@ Public Class Engine
                 End Using
             Else
                 ' ... it is a double room being booked ... 
-                'Using cmd As SqlCommand = con.CreateCommand
-                '    cmd.Connection = con
-                '    cmd.Connection.Open()
-                '    cmd.CommandType = CommandType.StoredProcedure
-                '    cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
-                '    cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
-                '    cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
-                '    cmd.Parameters.AddWithValue("@room1ID", CInt(dt.Rows(0).Item("Room1ID")))
-                '    cmd.Parameters.AddWithValue("@room2ID", CInt(dt.Rows(0).Item("Room2ID")))
-                '    cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
-                '    cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
-                '    cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                '    cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                '    cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                '    cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
-                '    cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
-                '    cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                '    cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                '    cmd.ExecuteNonQuery()
-                '    cmd.Connection.Close()
-                'End Using
-
                 Using cmd As SqlCommand = con.CreateCommand
                     cmd.Connection = con
                     cmd.Connection.Open()
                     cmd.CommandType = CommandType.StoredProcedure
-                    cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
+                    cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
                     cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
                     cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
-                    cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+                    cmd.Parameters.AddWithValue("@room1ID", CInt(dt.Rows(0).Item("Room1ID")))
+                    cmd.Parameters.AddWithValue("@room2ID", CInt(dt.Rows(0).Item("Room2ID")))
                     cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
                     cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
                     cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
@@ -442,6 +444,27 @@ Public Class Engine
                     cmd.ExecuteNonQuery()
                     cmd.Connection.Close()
                 End Using
+
+                'Using cmd As SqlCommand = con.CreateCommand
+                '    cmd.Connection = con
+                '    cmd.Connection.Open()
+                '    cmd.CommandType = CommandType.StoredProcedure
+                '    cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
+                '    cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
+                '    cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
+                '    cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
+                '    cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
+                '    cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
+                '    cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
+                '    cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+                '    cmd.Parameters.AddWithValue("@yearid", TheYearID)
+                '    cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
+                '    cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
+                '    cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+                '    cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
+                '    cmd.ExecuteNonQuery()
+                '    cmd.Connection.Close()
+                'End Using
 
             End If
 
