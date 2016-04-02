@@ -293,69 +293,102 @@ Public Class Engine
         Dim BuildingID As Integer = dt4.Rows(0).Item("BuildingID")
 
 
-        Dim MeetingList As New List(Of MeetingDates)
+        ' //////////////////  NEW MULTIPLE MEETING LOGIC  //////////////////////////////
 
-        Dim nbrOfMeetings As Integer = 1
+        Dim NewMeetingList As New List(Of MeetingDates)
+        
         If MultipleRoomBooking = "yes" Then
 
-            Dim FirstMeeting As Date = NewStartDate.Date
-            Dim LastMeeting As Date = CDate(MultipleRoomBookingDate).Date
-            Dim DayOfMeetings As String = FirstMeeting.Date.DayOfWeek
+            Dim MeetingDayOfWeek = NewStartDate.DayOfWeek
 
-            While FirstMeeting <= LastMeeting
+            Select Case BookingFrequency
+                Case "Weekly"
+                    'Get all Nth days of every week between the two dates
 
-                If FirstMeeting.Date.DayOfWeek = DayOfMeetings Then
+                    Do While NewStartDate.Date <= CDate(MultipleRoomBookingDate).Date
 
-                    'Format Start and End Dates
-                    ' year + "-" + month + "-" + day + " " + endTime
+                        If NewStartDate.DayOfWeek = MeetingDayOfWeek Then
 
+                            Dim msTime As DateTime = CDate(FormattedStartDate)
+                            Dim msTimeString As String = msTime.TimeOfDay.ToString()
+                            Dim msTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & msTimeString
 
-                    Dim msTime As DateTime = CDate(FormattedStartDate)
-                    Dim msTimeString As String = msTime.TimeOfDay.ToString()
-                    Dim msTimeFormatted As String = FirstMeeting.Date.Year & "-" & FirstMeeting.Date.Month & "-" & FirstMeeting.Date.Day & " " & msTimeString
+                            Dim meTime As DateTime = CDate(FormattedEndDate)
+                            Dim meTimeString As String = meTime.TimeOfDay.ToString()
+                            Dim meTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & meTimeString
 
-                    Dim meTime As DateTime = CDate(FormattedEndDate)
-                    Dim meTimeString As String = meTime.TimeOfDay.ToString()
-                    Dim meTimeFormatted As String = FirstMeeting.Date.Year & "-" & FirstMeeting.Date.Month & "-" & FirstMeeting.Date.Day & " " & meTimeString
+                            Dim MD As New MeetingDates
+                            MD.MeetingDate = NewStartDate.Date
+                            MD.FormattedStartDate = msTimeFormatted
+                            MD.FormattedEndDate = meTimeFormatted
+                            NewMeetingList.Add(MD)
+                        End If
 
-                    Dim MD As New MeetingDates
-                    MD.MeetingDate = FirstMeeting
-                    MD.FormattedStartDate = msTimeFormatted
-                    MD.FormattedEndDate = meTimeFormatted
-                    MeetingList.Add(MD)
-                End If
+                        NewStartDate = NewStartDate.AddDays(1)
 
-
-
-
-                FirstMeeting = FirstMeeting.AddDays(1)
-
-                'If BookingFrequency = "Weekly" Then
+                    Loop
 
 
+                Case "Bi-Weekly"
+                    'Get every other Nth day between the two dates
+                    Dim SkipNextMatch = False
+                    Do While NewStartDate.Date <= CDate(MultipleRoomBookingDate).Date
 
-                'ElseIf BookingFrequency = "Bi-Weekly" Then
+                        If NewStartDate.DayOfWeek = MeetingDayOfWeek Then
 
-                '    FirstMeeting = FirstMeeting.AddDays(8)
+                            Dim msTime As DateTime = CDate(FormattedStartDate)
+                            Dim msTimeString As String = msTime.TimeOfDay.ToString()
+                            Dim msTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & msTimeString
 
-                'Else
-                '    'it's monthly
-                '    FirstMeeting = FirstMeeting.AddMonths(1)
+                            Dim meTime As DateTime = CDate(FormattedEndDate)
+                            Dim meTimeString As String = meTime.TimeOfDay.ToString()
+                            Dim meTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & meTimeString
 
-                'End If
+                            If SkipNextMatch Then
+                                SkipNextMatch = False
+                            Else
+                                Dim MD As New MeetingDates
+                                MD.MeetingDate = NewStartDate.Date
+                                MD.FormattedStartDate = msTimeFormatted
+                                MD.FormattedEndDate = meTimeFormatted
+                                NewMeetingList.Add(MD)
+                                SkipNextMatch = True
+                            End If
 
+                        End If
 
-            End While
+                        NewStartDate = NewStartDate.AddDays(1)
+
+                    Loop
+
+                Case "Monthly"
+                    'Get every Nth day of the month between the two dates.
+
+            End Select
 
         Else
 
-            Dim MD As New MeetingDates
-            MD.MeetingDate = MeetingDay
-            MD.FormattedStartDate = FormattedStartDate
-            MD.FormattedEndDate = FormattedEndDate
-            MeetingList.Add(MD)
+            Dim msTime As DateTime = CDate(FormattedStartDate)
+            Dim msTimeString As String = msTime.TimeOfDay.ToString()
+            Dim msTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & msTimeString
 
+            Dim meTime As DateTime = CDate(FormattedEndDate)
+            Dim meTimeString As String = meTime.TimeOfDay.ToString()
+            Dim meTimeFormatted As String = NewStartDate.Date.Year & "-" & NewStartDate.Date.Month & "-" & NewStartDate.Date.Day & " " & meTimeString
+
+            Dim MD As New MeetingDates
+            MD.MeetingDate = NewStartDate.Date
+            MD.FormattedStartDate = msTimeFormatted
+            MD.FormattedEndDate = meTimeFormatted
+            NewMeetingList.Add(MD)
         End If
+
+      
+
+        ' //////////////////  END NEW MULTIPLE MEETING LOGIC  //////////////////////////////
+
+
+  
 
         Dim TheCommitteeID As Integer = 0
 
@@ -403,7 +436,7 @@ Public Class Engine
         If Trim(contactPhone) = "" Then contactPhone = " "
 
 
-        For i As Integer = 0 To MeetingList.Count - 1
+        For i As Integer = 0 To NewMeetingList.Count - 1
 
 
             Using cmd As SqlCommand = con.CreateCommand
@@ -411,11 +444,11 @@ Public Class Engine
                 cmd.Connection.Open()
                 cmd.CommandType = CommandType.StoredProcedure
                 cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
+                cmd.Parameters.AddWithValue("@meetingdate", NewMeetingList.Item(i).MeetingDate)
                 cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
                 cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
+                cmd.Parameters.AddWithValue("@starttime", NewMeetingList.Item(i).FormattedStartDate)
+                cmd.Parameters.AddWithValue("@endtime", NewMeetingList.Item(i).FormattedEndDate)
                 cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
                 cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
                 cmd.Parameters.AddWithValue("@yearid", TheYearID)
@@ -429,59 +462,7 @@ Public Class Engine
             End Using
 
 
-            'If IsDBNull(dt.Rows(0).Item("Room1ID")) Or IsDBNull(dt.Rows(0).Item("Room2ID")) Then
-            '    ' ... its a single room being booked ...
-            '    Using cmd As SqlCommand = con.CreateCommand
-            '        cmd.Connection = con
-            '        cmd.Connection.Open()
-            '        cmd.CommandType = CommandType.StoredProcedure
-            '        cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
-            '        cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
-            '        cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
-            '        cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-            '        cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
-            '        cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
-            '        cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-            '        cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-            '        cmd.Parameters.AddWithValue("@yearid", TheYearID)
-            '        cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
-            '        cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
-            '        cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-            '        cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-            '        cmd.ExecuteNonQuery()
-            '        cmd.Connection.Close()
-            '    End Using
-            'Else
-            '    ' ... it is a double room being booked ... 
-            '    Using cmd As SqlCommand = con.CreateCommand
-            '        cmd.Connection = con
-            '        cmd.Connection.Open()
-            '        cmd.CommandType = CommandType.StoredProcedure
-            '        cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
-            '        cmd.Parameters.AddWithValue("@meetingdate", MeetingList.Item(i).MeetingDate)
-            '        cmd.Parameters.AddWithValue("@committeeid", TheCommitteeID)
-            '        cmd.Parameters.AddWithValue("@room1ID", CInt(dt.Rows(0).Item("Room1ID")))
-            '        cmd.Parameters.AddWithValue("@room2ID", CInt(dt.Rows(0).Item("Room2ID")))
-            '        cmd.Parameters.AddWithValue("@starttime", MeetingList.Item(i).FormattedStartDate)
-            '        cmd.Parameters.AddWithValue("@endtime", MeetingList.Item(i).FormattedEndDate)
-            '        cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-            '        cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-            '        cmd.Parameters.AddWithValue("@yearid", TheYearID)
-            '        cmd.Parameters.AddWithValue("@contactPerson", contactPerson)
-            '        cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
-            '        cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-            '        cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-            '        cmd.ExecuteNonQuery()
-            '        cmd.Connection.Close()
-            '    End Using
-
-
-
-            'End If
-
         Next
-
-
 
 
         Return "Hello World"
@@ -712,72 +693,23 @@ Public Class Engine
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
         Dim dt As New DataTable
 
-        'Need to check if meeting is a double meeting. 
+
         Using cmd As New SqlCommand
             cmd.Connection = con
             cmd.Connection.Open()
             cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT * FROM CommitteeMeeting WHERE CommitteeMeetingID = " & MeetingID
-            Using da As New SqlDataAdapter
-                da.SelectCommand = cmd
-                da.Fill(dt)
-            End Using
+            cmd.CommandText = "DELETE FROM JoinLegislationAgendaSupport WHERE AgendaSupportID IN (SELECT AgendaSupportId FROM AgendaSupport WHERE CommitteeMeetingId = " & MeetingID & ")"
+            cmd.ExecuteNonQuery()
             cmd.Connection.Close()
         End Using
-
-        If IsDBNull(dt.Rows(0).Item("isDoubleRoom")) Then
-
-            '.. its a single meeting
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM JoinLegislationAgendaSupport WHERE AgendaSupportID IN (SELECT AgendaSupportId FROM AgendaSupport WHERE CommitteeMeetingId = " & MeetingID & ")"
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & MeetingID
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-
-
-        Else
-
-            ' .. its a double, so we need to delete multiple room blocks
-            Dim MeetingDate As String = dt.Rows(0).Item("MeetingDateTime")
-            Dim StartTime As String = dt.Rows(0).Item("StartTime")
-            Dim EndTime As String = dt.Rows(0).Item("EndTime")
-            Dim CommitteeID As Integer = dt.Rows(0).Item("CommitteeID")
-
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM JoinLegislationAgendaSupport WHERE AgendaSupportID IN (SELECT AgendaSupportId FROM AgendaSupport WHERE CommitteeMeetingId = " & MeetingID & ")"
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE MeetingDateTime = '" + MeetingDate + "' AND StartTime = '" + StartTime + "' AND EndTime = '" + EndTime + "' AND CommitteeID = " & CommitteeID
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-        End If
-
-
-
-
+        Using cmd As New SqlCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & MeetingID
+            cmd.ExecuteNonQuery()
+            cmd.Connection.Close()
+        End Using
 
         Return ""
     End Function

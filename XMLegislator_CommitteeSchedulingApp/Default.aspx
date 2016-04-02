@@ -146,11 +146,11 @@
 
                                
                                 <div hidden  class="input-field col s6 committeeTextField" style="margin-top:55px">
-
+                               
                                 <label for="txtCommittee">Committee Display Name</label>
                             
                                 <input id="txtCommittee" type="text" placeholder="Enter new committee name" />
-
+                                <h6 id="lblcheckCommittee" style="color:red"></h6>
                                 </div>
                               
 
@@ -163,11 +163,11 @@
                             </div>
 
                             <div hidden class="input-field col s12 committeeTextField">
-
-                                <label for="txtCommittee">Committee Long Name</label>
+                                 
+                                <label for="txtComLongName">Committee Long Name</label>
                             
                                 <input id="txtComLongName" type="text" placeholder="Committee Long Name" />
-                                <h6 id="lblcheckCommittee" style="color:red"></h6>
+                               
                             </div>
 
                         </div>
@@ -535,6 +535,8 @@
                 })
 
 
+            } else {
+                $("#lblcheckCommittee").text("");
             }
 
        })
