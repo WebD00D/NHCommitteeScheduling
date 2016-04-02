@@ -167,7 +167,7 @@
                                 <label for="txtCommittee">Committee Long Name</label>
                             
                                 <input id="txtComLongName" type="text" placeholder="Committee Long Name" />
-                                <label id="lblcheckCommittee" style="color:red"></label>
+                                <h6 id="lblcheckCommittee" style="color:red"></h6>
                             </div>
 
                         </div>

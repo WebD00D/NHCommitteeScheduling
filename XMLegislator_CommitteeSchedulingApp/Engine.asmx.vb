@@ -236,6 +236,12 @@ Public Class Engine
             cmd.Connection.Close()
         End Using
 
+        Dim isDoubleRoom As Boolean = False
+        If CStr(dt.Rows(0).Item("RoomNbr")).Contains("-") Then
+            isDoubleRoom = True
+        End If
+
+
 
         ' .. get year id
         Dim dt2 As New DataTable
@@ -417,6 +423,7 @@ Public Class Engine
                 cmd.Parameters.AddWithValue("@contactPhone", contactPhone)
                 cmd.Parameters.AddWithValue("@equipment", EquipmentList)
                 cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
+                cmd.Parameters.AddWithValue("@isdoubleRoom", CByte(isDoubleRoom))
                 cmd.ExecuteNonQuery()
                 cmd.Connection.Close()
             End Using
@@ -496,25 +503,25 @@ Public Class Engine
 
         Dim con As New SqlConnection(ConfigurationManager.ConnectionStrings("connex").ConnectionString)
 
-        ' Possible Scenarios
 
-        ' 1) X Meeting is being changed from a single room meeting to a double room meeting
+        Dim dt As New DataTable
+        Using cmd As SqlCommand = con.CreateCommand
+            cmd.Connection = con
+            cmd.Connection.Open()
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "SELECT RoomNbr FROM Room WHERE RoomID =" & RoomID
+            Using da As New SqlDataAdapter
+                da.SelectCommand = cmd
+                da.Fill(dt)
+            End Using
+            cmd.Connection.Close()
+        End Using
 
-        ' 2) X Meeting is being changed from a double room meeting to a single room meeting 
-
-        ' 3) Meeting is in a double room and being changed to a new double room. 
-
-        ' 4) Meeting is in a single room and being changed to a new single room. 
-
-        ' 5) Meeting is in a double room and room is not changing
-
-        ' 6) Meeting is in a single room and room is not changing 
-
-        ' --------------------------------------------------------------------------------
-
-
-        ' ... check if current meeting is schedules for single or double
-
+        Dim RoomNbr As String = dt.Rows(0).Item("RoomNbr")
+        Dim isDoubleRoom As Boolean = False
+        If RoomNbr.Contains("-") Then
+            isDoubleRoom = True
+        End If
 
         ' .. get year id
         Dim dt2 As New DataTable
@@ -532,399 +539,27 @@ Public Class Engine
 
         Dim TheYearID As Integer = dt2.Rows(0).Item(0)
 
-
-        Dim meetingDT As New DataTable
-        Using cmd As New SqlCommand
+        Using cmd As SqlCommand = con.CreateCommand
             cmd.Connection = con
             cmd.Connection.Open()
-            cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT * FROM CommitteeMeeting WHERE CommitteeMeetingID = " & meetingId
-            Using da As New SqlDataAdapter
-                da.SelectCommand = cmd
-                da.Fill(meetingDT)
-            End Using
+            cmd.CommandType = CommandType.StoredProcedure
+            cmd.CommandText = "sproc_EditCommitteeMeeting"
+            cmd.Parameters.AddWithValue("@meetingid", meetingId)
+            cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
+            cmd.Parameters.AddWithValue("@committeeid", CommitteeID)
+            cmd.Parameters.AddWithValue("@roomid", RoomID)
+            cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
+            cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
+            cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
+            cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
+            cmd.Parameters.AddWithValue("@contactPerson", ContactName)
+            cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
+            cmd.Parameters.AddWithValue("@equipment", EquipmentList)
+            cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
+            cmd.Parameters.AddWithValue("@isDoubleRoom", CByte(isDoubleRoom))
+            cmd.ExecuteNonQuery()
             cmd.Connection.Close()
         End Using
-
-        Dim currentMeetingIsInSingle As Boolean = False
-        If IsDBNull(meetingDT.Rows(0).Item("isDoubleRoom")) Then
-            currentMeetingIsInSingle = True
-        Else
-            currentMeetingIsInSingle = False
-        End If
-
-        Dim currentMeetingDateTime As String = meetingDT.Rows(0).Item("MeetingDateTime")
-        Dim currentMeetingCommitteeID As Integer = meetingDT.Rows(0).Item("CommitteeID")
-        Dim currentMeetingStartTime As String = meetingDT.Rows(0).Item("StartTime")
-        Dim currentMeetingEndTime As String = meetingDT.Rows(0).Item("EndTime")
-
-
-        ' ... check if passed-in room id is that of single or double room type.
-        Dim roomDT As New DataTable
-        Using cmd As New SqlCommand
-            cmd.Connection = con
-            cmd.Connection.Open()
-            cmd.CommandType = CommandType.Text
-            cmd.CommandText = "SELECT * FROM Room WHERE RoomID =" & RoomID
-            Using da As New SqlDataAdapter
-                da.SelectCommand = cmd
-                da.Fill(roomDT)
-            End Using
-            cmd.Connection.Close()
-        End Using
-
-
-        Dim newRoomIsSingle As Boolean
-        If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
-            newRoomIsSingle = True
-        Else
-            newRoomIsSingle = False
-        End If
-
-        '/////////////////////////////  NEW LOGIC   /////////////////////////////////
-        Dim CurrentMeetingRoomID As Integer = meetingDT.Rows(0).Item("RoomID")
-        Dim newRoom1ID As Integer = Nothing
-        If Not IsDBNull(roomDT.Rows(0).Item("Room1ID")) Then newRoom1ID = roomDT.Rows(0).Item("Room1ID")
-        Dim newRoom2ID As Integer = Nothing
-        If Not IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then newRoom2ID = roomDT.Rows(0).Item("Room2ID")
-
-        ' Meeting is being changed from a single room meeting to a double room meeting
-
-        If currentMeetingIsInSingle = True And newRoomIsSingle = False Then
-            ' Delete Single Room Meeting
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE CommitteeMeetingID = " & meetingId
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            ' Create new double room meeting
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                'cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@room1ID", CInt(roomDT.Rows(0).Item("Room1ID")))
-                cmd.Parameters.AddWithValue("@room2ID", CInt(roomDT.Rows(0).Item("Room2ID")))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-
-        End If
-
-        ' Meeting is being changed from a double room meeting to a single room meeting 
-        If currentMeetingIsInSingle = False And newRoomIsSingle = True AndAlso CurrentMeetingRoomID <> RoomID AndAlso CurrentMeetingRoomID <> newRoom1ID AndAlso CurrentMeetingRoomID <> newRoom2ID Then
-
-
-
-            'Delete double.. 
-            ' .. its a double, so we need to delete multiple room blocks
-            Dim MeetingDate As String = meetingDT.Rows(0).Item("MeetingDateTime")
-            Dim StartTime As String = meetingDT.Rows(0).Item("StartTime")
-            Dim EndTime As String = meetingDT.Rows(0).Item("EndTime")
-            Dim Committee As Integer = meetingDT.Rows(0).Item("CommitteeID")
-
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE MeetingDateTime = '" + MeetingDate + "' AND StartTime = '" + StartTime + "' AND EndTime = '" + EndTime + "' AND CommitteeID = " & Committee
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            'Create Single
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_CreateNewCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-        End If
-
-
-
-
-        ' //////////////////////////////  END NEW LOGIC     ///////////////////////////////////////////////////
-
-        
-
-
-        If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
-            If currentMeetingIsInSingle = False Then
-                newRoomIsSingle = False
-            Else
-                newRoomIsSingle = True
-            End If
-
-        Else
-            If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
-                If currentMeetingIsInSingle = False Then
-                    If IsDBNull(roomDT.Rows(0).Item("Room1ID")) AndAlso IsDBNull(roomDT.Rows(0).Item("Room2ID")) Then
-                        If CBool(meetingDT.Rows(0).Item("isDoubleRoom")) = True Then
-                            newRoomIsSingle = False
-                        Else
-                            newRoomIsSingle = True
-                        End If
-
-                    Else
-                        newRoomIsSingle = False
-                    End If
-
-                Else
-                    newRoomIsSingle = True
-                End If
-
-            Else
-                newRoomIsSingle = False
-            End If
-
-        End If
-
-        ' convoluted logic that needs to be replaced ends here...
-
-
-     
-
-
-
-
-        ' SCENARIO 3: Meeting is in a double room and being changed to a new double room. 
-        If currentMeetingIsInSingle = False AndAlso newRoomIsSingle = False AndAlso CurrentMeetingRoomID <> RoomID AndAlso CurrentMeetingRoomID <> newRoom1ID AndAlso CurrentMeetingRoomID <> newRoom2ID Then
-
-            ' Delete the current double room booking
-            Dim MeetingDate As String = meetingDT.Rows(0).Item("MeetingDateTime")
-            Dim StartTime As String = meetingDT.Rows(0).Item("StartTime")
-            Dim EndTime As String = meetingDT.Rows(0).Item("EndTime")
-            Dim Committee As Integer = meetingDT.Rows(0).Item("CommitteeID")
-
-            Using cmd As New SqlCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.Text
-                cmd.CommandText = "DELETE FROM CommitteeMeeting WHERE MeetingDateTime = '" + MeetingDate + "' AND StartTime = '" + StartTime + "' AND EndTime = '" + EndTime + "' AND CommitteeID = " & Committee
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            ' Create new double room meeting
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_CreateNewCommitteeMeeting_DoubleRoom"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                '      cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@room1ID", CInt(roomDT.Rows(0).Item("Room1ID")))
-                cmd.Parameters.AddWithValue("@room2ID", CInt(roomDT.Rows(0).Item("Room2ID")))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@yearid", TheYearID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-        End If
-
-
-        'SCENARIO 4: Meeting is in a single room and being changed to a new single room. 
-        ' or.. 
-        'SCENARIO 6: Meeting is in a single room and room is not changing 
-        If currentMeetingIsInSingle = True And newRoomIsSingle = True Then
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_EditCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingid", meetingId)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-        End If
-
-        ' SCENARIO 5: Meeting is in a double room and room is not changing
-        If currentMeetingIsInSingle = False AndAlso newRoomIsSingle = False AndAlso CurrentMeetingRoomID = RoomID Or CurrentMeetingRoomID = newRoom1ID Or CurrentMeetingRoomID = newRoom2ID Then
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_EditCommitteeMeeting_DoubleRoom"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingid", meetingId)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-
-                cmd.Parameters.AddWithValue("@oldMeetingDateTime", currentMeetingDateTime)
-                cmd.Parameters.AddWithValue("@oldMeetingStart", currentMeetingStartTime)
-                cmd.Parameters.AddWithValue("@oldMeetingEnd", currentMeetingEndTime)
-                cmd.Parameters.AddWithValue("@oldCommitteeID", currentMeetingCommitteeID)
-                cmd.Parameters.AddWithValue("@contactPerson", ContactName)
-                cmd.Parameters.AddWithValue("@contactPhone", ContactPhone)
-
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.Parameters.AddWithValue("@isconfidential", CByte(IsConfidential))
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-            Return "Hello World"
-        End If
-
-
-
-
-
-
-
-        Dim dt As New DataTable
-
-
-
-
-        '..check if the meeting that is about to be updated is a double room or not.. 
-        ' .. this code block below is executed when the room has not changed. 
-
-        If IsDBNull(dt.Rows(0).Item("isDoubleRoom")) Then
-
-            '.. is single room.. 
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_EditCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingid", meetingId)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-
-
-        Else
-
-            ' .. its a double room.. 
-
-
-        End If
-
-
-
-
-
-
-
-        If IsDBNull(dt.Rows(0).Item("Room1ID")) Or IsDBNull(dt.Rows(0).Item("Room2ID")) Then
-            ' .. meeting is just booked in a single room ...
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_EditCommitteeMeeting"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingid", meetingId)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@hearingid", HearingTypeID)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-
-        Else
-            ' .. meeting is booked for a double room ...
-
-            ' .. Need to get current data to use for where clause of the parent meeting..
-
-
-
-            Using cmd As SqlCommand = con.CreateCommand
-                cmd.Connection = con
-                cmd.Connection.Open()
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.CommandText = "sproc_EditCommitteeMeeting_DoubleRoom"
-                cmd.Parameters.AddWithValue("@meetingdate", MeetingDay)
-                cmd.Parameters.AddWithValue("@committeeid", CInt(CommitteeID))
-                cmd.Parameters.AddWithValue("@roomid", CInt(RoomID))
-                cmd.Parameters.AddWithValue("@starttime", FormattedStartDate)
-                cmd.Parameters.AddWithValue("@endtime", FormattedEndDate)
-                cmd.Parameters.AddWithValue("@meetingid", meetingId)
-                cmd.Parameters.AddWithValue("@meetingnotes", MeetingNotes)
-                cmd.Parameters.AddWithValue("@equipment", EquipmentList)
-                cmd.ExecuteNonQuery()
-                cmd.Connection.Close()
-            End Using
-        End If
-
-
-
-
-
 
         Return "Hello World"
     End Function

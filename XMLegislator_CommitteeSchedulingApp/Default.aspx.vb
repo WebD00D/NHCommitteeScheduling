@@ -89,13 +89,51 @@ Public Class _Default
 
             If meeting("RoomNbr").ToString.Contains("-") Then
 
-                'Get the two room id's from the parse room number. 
+                'Get the two room id's from the parse room number.
 
-                meetingRow("CustomerID") = "ALFKI"
-                meetingRow("CompanyName") = "Alfreds Futterkiste"
-                dt.Rows.Add(meetingRow)
-            Else
+                Dim RoomNumber As String = meeting("RoomNbr")
+                Dim RoomArr As String() = RoomNumber.Split("-")
+                Dim RoomOne As String = RoomArr(0)
+                Dim RoomTwo As String = RoomArr(1)
+
+
+                Dim roomOneAdapter As New SqlDataAdapter("SELECT RoomID FROM Room WHERE RoomNbr ='" & RoomOne & "'", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+                Dim roomOneDT As New DataTable
+                roomOneAdapter.Fill(roomOneDT)
+
+                Dim roomTwoAdapter As New SqlDataAdapter("SELECT RoomID FROM Room WHERE RoomNbr ='" & RoomTwo & "'", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+                Dim roomTwoDT As New DataTable
+                roomTwoAdapter.Fill(roomTwoDT)
+
+
+
+                'Add First Meeting
                 meetingRow("CommitteeMeetingID") = meeting("CommitteeMeetingID")
+                meetingRow("StartTime") = meeting("StartTime")
+                meetingRow("EndTime") = meeting("EndTime")
+                meetingRow("RoomID") = roomOneDT.Rows(0).Item("RoomID")
+                meetingRow("RoomNbr") = RoomOne
+                meetingRow("CommitteeName") = meeting("CommitteeName")
+
+                dt.Rows.Add(meetingRow)
+
+                Dim meetingRow2 As DataRow = dt.NewRow()
+                'Add Second Meeting
+                meetingRow2("CommitteeMeetingID") = meeting("CommitteeMeetingID")
+                meetingRow2("StartTime") = meeting("StartTime")
+                meetingRow2("EndTime") = meeting("EndTime")
+                meetingRow2("RoomID") = roomTwoDT.Rows(0).Item("RoomID")
+                meetingRow2("RoomNbr") = RoomTwo
+                meetingRow2("CommitteeName") = meeting("CommitteeName")
+                dt.Rows.Add(meetingRow2)
+            Else
+
+                meetingRow("CommitteeMeetingID") = meeting("CommitteeMeetingID")
+                meetingRow("StartTime") = meeting("StartTime")
+                meetingRow("EndTime") = meeting("EndTime")
+                meetingRow("RoomID") = meeting("RoomID")
+                meetingRow("RoomNbr") = meeting("RoomNbr")
+                meetingRow("CommitteeName") = meeting("CommitteeName")
                 dt.Rows.Add(meetingRow)
             End If
 
