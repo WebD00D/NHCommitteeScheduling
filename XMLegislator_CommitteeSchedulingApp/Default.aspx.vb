@@ -68,12 +68,44 @@ Public Class _Default
         da.SelectCommand.Parameters.AddWithValue("start", start)
         da.SelectCommand.Parameters.AddWithValue("end", start.AddDays(days))
 
-        Dim dt As New DataTable()
-        da.Fill(dt)
+        Dim tempDT As New DataTable()
+        da.Fill(tempDT)
 
 
         ' We need to fill a temp table, and check for double room meetings by parsing the room number. If row contains
         ' a double meeting then take get the individual rooms from that and add them as two "fake" meetings to the scheduler.
+
+        Dim dt As New DataTable()
+        dt.Columns.Add("CommitteeMeetingID")
+        dt.Columns.Add("StartTime")
+        dt.Columns.Add("EndTime")
+        dt.Columns.Add("RoomID")
+        dt.Columns.Add("RoomNbr")
+        dt.Columns.Add("CommitteeName")
+
+        For Each meeting As DataRow In tempDT.Rows
+
+            Dim meetingRow As DataRow = dt.NewRow()
+
+            If meeting("RoomNbr").ToString.Contains("-") Then
+
+                'Get the two room id's from the parse room number. 
+
+                meetingRow("CustomerID") = "ALFKI"
+                meetingRow("CompanyName") = "Alfreds Futterkiste"
+                dt.Rows.Add(meetingRow)
+            Else
+                meetingRow("CommitteeMeetingID") = meeting("CommitteeMeetingID")
+                dt.Rows.Add(meetingRow)
+            End If
+
+
+
+
+
+        Next
+
+        
 
 
 
