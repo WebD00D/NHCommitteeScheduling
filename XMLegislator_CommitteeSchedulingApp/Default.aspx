@@ -94,6 +94,14 @@
 </DayPilot:DayPilotScheduler>
     </div>
 
+        <div id="modal3" class="modal  modal-fixed-footer">
+            <div class="modal-content">
+                <div class="row">
+                    <h3>Conference Committee Info</h3>
+                </div>
+            </div>
+        </div>
+
         <div id="modal1" class="modal modal-fixed-footer" style="min-height:85%">
             <div class="modal-content" >
                 <div class="row">
@@ -203,7 +211,7 @@
                                 <select disabled id="ddlBookingFrequency" class="browser-default">
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-Weekly">Bi-Weekly</option>
-                                    <option value="Monthly">Monthly</option>
+                                   <%-- <option value="Monthly">Monthly</option>--%>
                                 </select>
                                 </div>
 
@@ -433,6 +441,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
     <script>
         $(document).ready(function () {
+
+            $("#theEndTime").change(function () {
+                checkTimeStamps();
+            })
+            $("#theStartTime").change(function () {
+                checkTimeStamps();
+            })
+
+            function checkTimeStamps() {
+                //start time
+                var start_time = $("#theStartTime").val();
+                //end time
+                var end_time = $("#theEndTime").val();
+
+                //convert both time into timestamp
+                var stt = new Date("November 13, 2013 " + start_time);
+                stt = stt.getTime();
+
+                var endt = new Date("November 13, 2013 " + end_time);
+                endt = endt.getTime();
+
+                if (stt > endt) {
+                    alert("End Time must be a later time than Start Time.");
+                }
+            }
+
+            $("#theEndTime2").change(function () {
+                checkTimeStamps2();
+                
+            })
+            $("#theStartTime2").change(function () {
+                checkTimeStamps2();
+            })
+
+            function checkTimeStamps2() {
+                
+                //start time
+                var start_time = $("#theStartTime2").val();
+                //end time
+                var end_time = $("#theEndTime2").val();
+
+                //convert both time into timestamp
+                var stt = new Date("November 13, 2013 " + start_time);
+                stt = stt.getTime();
+
+                var endt = new Date("November 13, 2013 " + end_time);
+                endt = endt.getTime();
+
+                console.log(stt + ' ' + endt);
+
+                if (stt > endt) {
+                    alert("End Time must be a later time than Start Time.");
+                }
+            }
+            
+
 
             $('.datepicker').pickadate({
                 selectMonths: true, 
@@ -1180,6 +1244,11 @@
                 success: function (data) {
 
                     var result = data.d;
+
+                    if (result === "none") {
+                        //$("#modal3").openModal();
+                        return;
+                    } 
                  
                     $.each(result, function (index, item) {
 
@@ -1311,10 +1380,7 @@
                          });
 
    
-             
-                      
-
-
+   
 
                     } else {
                         // its empty.. clear all checkboxes
@@ -1322,7 +1388,7 @@
 
                        
               
-
+                    $("#editmodal").openModal();
 
 
 
@@ -1339,7 +1405,7 @@
            
          
 
-            $("#editmodal").openModal();
+            
 
         }
 

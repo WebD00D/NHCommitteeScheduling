@@ -83,6 +83,28 @@ Public Class _Default
         dt.Columns.Add("RoomNbr")
         dt.Columns.Add("CommitteeName")
 
+
+        Dim da2 As New SqlDataAdapter("SELECT cm.ConferenceCommitteeID As CommitteeMeetingID,cm.StartTime,cm.EndTime, cm.RoomID,r.RoomNbr,l.ExpandedBillNbr + ' CofC' As CommitteeName FROM ConferenceCommitteeMeeting cm INNER JOIN ConferenceCommittee c on cm.ConferenceCommitteeID = c.ConferenceCommitteeID INNER JOIN Legislation l on c.LegislationID = l.LegislationID INNER JOIN Room r on cm.RoomID = r.RoomID WHERE NOT (([EndTime] <= @start) OR ([StartTime] >= @end)) AND Released = 1", ConfigurationManager.ConnectionStrings("connex").ConnectionString)
+        da2.SelectCommand.Parameters.AddWithValue("start", start)
+        da2.SelectCommand.Parameters.AddWithValue("end", start.AddDays(days))
+
+        Dim CommitteeConferenceTempDT As New DataTable()
+        da2.Fill(CommitteeConferenceTempDT)
+
+        If CommitteeConferenceTempDT.Rows.Count > 1 Then
+            For Each conferenceMeeting As DataRow In CommitteeConferenceTempDT.Rows
+                Dim meetingRow As DataRow = dt.NewRow()
+                meetingRow("CommitteeMeetingID") = conferenceMeeting("CommitteeMeetingID")
+                meetingRow("StartTime") = conferenceMeeting("StartTime")
+                meetingRow("EndTime") = conferenceMeeting("EndTime")
+                meetingRow("RoomID") = conferenceMeeting("RoomID")
+                meetingRow("RoomNbr") = conferenceMeeting("RoomNbr")
+                meetingRow("CommitteeName") = conferenceMeeting("CommitteeName")
+                dt.Rows.Add(meetingRow)
+            Next
+        End If
+
+
         For Each meeting As DataRow In tempDT.Rows
 
             Dim meetingRow As DataRow = dt.NewRow()
